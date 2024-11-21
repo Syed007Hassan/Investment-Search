@@ -33,18 +33,21 @@ const CompanySearch: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Search Companies</h2>
+    <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-6">
       <SearchInput
         value={searchQuery}
         onChange={setSearchQuery}
         onSearch={handleSearch}
         isLoading={isLoading}
+        placeholder="Search for companies..."
       />
       
       <div className="mt-8 space-y-4">
         {companies.map((company, index) => (
-          <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div 
+            key={index} 
+            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 bg-white"
+          >
             <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
             <p className="mt-2 text-gray-600">{company.description}</p>
             <div className="mt-3 flex flex-wrap gap-2">

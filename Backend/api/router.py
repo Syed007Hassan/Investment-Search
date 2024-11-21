@@ -94,3 +94,15 @@ async def search_company(search_request: SearchRequest):
             company.to_dict() for company in company_recommendations
         ],
     }
+
+
+@api_router.get("/companies", response_class=JSONResponse)
+async def get_companies():
+    """
+    This function is used to get all companies from the database.
+    """
+    with get_db_session() as session:
+        companies = session.query(Company).order_by(Company.created_at.desc()).all()
+        return {
+            "companies": [company.to_dict() for company in companies]
+        }

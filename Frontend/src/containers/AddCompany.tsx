@@ -10,7 +10,11 @@ interface CompanyForm {
   location: string;
 }
 
-const AddCompany: React.FC = () => {
+interface AddCompanyProps {
+  onSuccess?: () => void;
+}
+
+const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<CompanyForm>({
     name: '',
@@ -34,6 +38,7 @@ const AddCompany: React.FC = () => {
         size: '',
         location: '',
       });
+      onSuccess?.();
     } catch (error) {
       toast.error('Failed to add company');
     } finally {
