@@ -5,6 +5,7 @@
 import logging
 import json
 from groq import Groq
+from openai import OpenAI
 
 from services.postgres_searcher import PostgresSearcher
 from config.main import config
@@ -32,7 +33,9 @@ class ChatService:
 
     def __init__(self):
         self.client = Groq(api_key=config.GROQ_API_KEY)
+        self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
         self.model = "llama3-groq-70b-8192-tool-use-preview"
+        self.openai_model = "gpt-4o-2024-08-06"
         self.searcher = PostgresSearcher(Company)
 
     def search_companies(self, search_query: str):
@@ -87,8 +90,8 @@ class ChatService:
         ]
         company_recommendations = []
         while True:
-            response = self.client.chat.completions.create(
-                model=self.model,
+            response = self.openai_client.chat.completions.create(
+                model=self.openai_model,
                 messages=messages,
                 tool_choice="auto",
                 tools=[self.search_tool_definition()],

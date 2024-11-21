@@ -24,27 +24,27 @@ function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600">
+    <div className="min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 text-white">
       <Toaster position="top-right" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-end space-x-4 mb-8">
           <button
             onClick={() => setIsListModalOpen(true)}
-            className="px-4 py-2 bg-white text-purple-600 rounded-lg shadow hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 bg-gray-800 text-green-400 rounded-lg shadow-lg border border-green-400 hover:bg-green-400 hover:text-gray-800 transition-all duration-300"
           >
             View All Companies
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700 transition-colors"
+            className="px-4 py-2 bg-green-400 text-gray-800 rounded-lg shadow-lg border border-green-400 hover:bg-gray-800 hover:text-green-400 transition-all duration-300"
           >
             Add Company
           </button>
         </div>
 
         <div className="flex flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold text-white mb-8 text-center">
+          <h1 className="text-4xl font-bold text-green-400 mb-12 text-center">
             Company Search System
           </h1>
           <div className="w-full max-w-3xl">
@@ -73,17 +73,17 @@ function App() {
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
           {companies.map((company: any, index) => (
-            <div key={index} className="border rounded-lg p-4">
-              <h3 className="font-semibold text-lg">{company.name}</h3>
-              <p className="text-gray-600 text-sm mt-1">{company.description}</p>
+            <div key={index} className="border border-green-400/20 rounded-lg p-4 hover:shadow-lg hover:shadow-green-400/10 transition-all duration-300 bg-gray-800">
+              <h3 className="text-lg font-semibold text-green-400">{company.name}</h3>
+              <p className="text-gray-300 text-sm mt-1">{company.description}</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                   {company.industry}
                 </span>
-                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                   {company.size}
                 </span>
-                <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                   {company.location}
                 </span>
               </div>

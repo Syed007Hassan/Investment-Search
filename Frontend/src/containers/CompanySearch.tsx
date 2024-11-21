@@ -33,7 +33,7 @@ const CompanySearch: React.FC = () => {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-6">
+    <div className="bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-green-400/20">
       <SearchInput
         value={searchQuery}
         onChange={setSearchQuery}
@@ -46,18 +46,18 @@ const CompanySearch: React.FC = () => {
         {companies.map((company, index) => (
           <div 
             key={index} 
-            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 bg-white"
+            className="border border-green-400/20 rounded-lg p-4 hover:shadow-lg hover:shadow-green-400/10 transition-all duration-300 bg-gray-800"
           >
-            <h3 className="text-lg font-semibold text-gray-900">{company.name}</h3>
-            <p className="mt-2 text-gray-600">{company.description}</p>
+            <h3 className="text-lg font-semibold text-green-400">{company.name}</h3>
+            <p className="mt-2 text-gray-300">{company.description}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                 {company.industry}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                 {company.size}
               </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
                 {company.location}
               </span>
             </div>

@@ -17,26 +17,29 @@ const SearchInput: React.FC<SearchInputProps> = ({
   isLoading = false,
 }) => {
   return (
-    <div className="relative">
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        placeholder={placeholder}
-        onKeyPress={(e) => e.key === 'Enter' && onSearch()}
-      />
-      <button
-        onClick={onSearch}
-        disabled={isLoading}
-        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700"
-      >
-        {isLoading ? (
-          <div className="animate-spin h-5 w-5 border-2 border-blue-500 rounded-full border-t-transparent" />
-        ) : (
-          <MagnifyingGlassIcon className="h-5 w-5" />
-        )}
-      </button>
+    <div className="relative group">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-green-400 to-green-600 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+      <div className="relative">
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full px-6 py-4 bg-gray-800 text-green-400 rounded-lg border border-green-400/50 focus:border-green-400 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 focus:outline-none placeholder-green-400/50 shadow-lg"
+          placeholder={placeholder}
+          onKeyPress={(e) => e.key === 'Enter' && onSearch()}
+        />
+        <button
+          onClick={onSearch}
+          disabled={isLoading}
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-green-400 hover:text-green-300 transition-colors duration-200"
+        >
+          {isLoading ? (
+            <div className="animate-spin h-6 w-6 border-2 border-green-400 rounded-full border-t-transparent"></div>
+          ) : (
+            <MagnifyingGlassIcon className="h-6 w-6" />
+          )}
+        </button>
+      </div>
     </div>
   );
 };
