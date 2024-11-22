@@ -11,11 +11,14 @@ from services.chat import ChatService
 from models.company import Company
 from services.embedding import Embedding
 from models.database import get_db_session
+from services.redis_service import RedisService
+from fastapi import HTTPException
 
 api_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 chat_service = ChatService()
 embedding_util = Embedding()
+redis_service = RedisService()
 
 
 class ChatRequest(BaseModel):
@@ -36,14 +39,6 @@ class CompanyCreate(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-
-
-@api_router.get("/")
-async def tester(request: Request):
-    """
-    This function is used to test the chatbot.
-    """
-    return templates.TemplateResponse("chat.html", {"request": request})
 
 
 @api_router.post("/chat", response_class=JSONResponse)
@@ -80,6 +75,9 @@ async def add_company(company: CompanyCreate):
     with get_db_session() as session:
         session.add(new_company)
         session.commit()
+    
+    await redis_service.delete("all_companies")
+    
     return {"message": "Company added successfully"}
 
 
@@ -98,11 +96,29 @@ async def search_company(search_request: SearchRequest):
 
 @api_router.get("/companies", response_class=JSONResponse)
 async def get_companies():
-    """
-    This function is used to get all companies from the database.
-    """
-    with get_db_session() as session:
-        companies = session.query(Company).order_by(Company.created_at.desc()).all()
+    """Get all companies with Redis caching"""
+    cache_key = "all_companies"
+    
+    # Clean cache implementation
+    cached_companies = await redis_service.get(cache_key)
+    if cached_companies:
         return {
-            "companies": [company.to_dict() for company in companies]
+            "companies": cached_companies,
+            "source": "cache"
         }
+
+    # If not in cache, get from database
+    try:
+        with get_db_session() as session:
+            companies = session.query(Company).order_by(Company.created_at.desc()).all()
+            companies_dict = [company.to_dict() for company in companies]
+            
+            # Store in cache for 1 hour
+            await redis_service.set(cache_key, companies_dict, 3600)
+            
+            return {
+                "companies": companies_dict,
+                "source": "database"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

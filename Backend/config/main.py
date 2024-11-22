@@ -15,15 +15,14 @@ class Config(object):
 
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY") or "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"
-    DATABASE_NAME: str = os.getenv("DATABASE_NAME")
-    DATABASE_USER: str = os.getenv("DATABASE_USER")
-    DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD")
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
-    DATABASE_PORT: str = os.getenv("DATABASE_PORT")
-    SQLALCHEMY_DATABASE_URL: str = (
-        f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@"
-        f"{DATABASE_URL}:{DATABASE_PORT}/{DATABASE_NAME}"
-    )
+    DATABASE_NAME: str = os.getenv("DATABASE_NAME", "postgres")
+    DATABASE_USER: str = os.getenv("DATABASE_USER", "postgres")
+    DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "postgres")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "db")
+    DATABASE_PORT: str = os.getenv("DATABASE_PORT", "5432")
+    SQLALCHEMY_DATABASE_URL: str = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_URL}:{DATABASE_PORT}/{DATABASE_NAME}"
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "redis")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
 
 
 config = Config()
