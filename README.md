@@ -8,7 +8,7 @@ The system leverages a sophisticated hybrid search architecture that:
 - Uses OpenAI embeddings to convert company descriptions into vector representations
 - Implements PostgreSQL's full-text search capabilities for keyword matching
 - Combines both approaches with a weighted scoring system for optimal ranking
-- Utilizes Groq's LLM for intelligent search result processing and summarization
+- Utilizes GPT-4o for intelligent search result processing and summarization
 
 This hybrid approach provides more accurate and contextually relevant results compared to traditional keyword-only search systems.
 
@@ -16,7 +16,7 @@ This hybrid approach provides more accurate and contextually relevant results co
 - **Backend**: FastAPI
 - **Database**: PostgreSQL with pgvector extension
 - **Vector Embeddings**: OpenAI API
-- **LLM Processing**: Groq
+- **LLM Processing**: GPT-4o
 - **Frontend**: React
 - **Containerization**: Docker
 - **ORM**: SQLAlchemy
@@ -24,17 +24,45 @@ This hybrid approach provides more accurate and contextually relevant results co
 ## Key Features
 - Hybrid search combining vector similarity and full-text search
 - Real-time company ranking based on search relevance
-- Company information management (add/search)
-- Asynchronous streaming responses
-- Docker-based deployment
-- Intelligent result summarization using Groq
+- Company information management (add/search) and retrieval
+- LLM powered tool calling
+- Docker-based application deployment
 
 ## Getting Started
 
 ### Prerequisites
 - Docker and Docker Compose
-- OpenAI API key
-- Groq API key
+- OpenAI API key (for embeddings generation and LLM processing)
+
+### Environment Setup
+
+1. Create a `.env` file in the Backend directory with the following variables:
+   ```bash
+   # Database Configuration
+   DATABASE_NAME=rag_test
+   DATABASE_USER=postgres
+   DATABASE_PASSWORD=postgres
+   DATABASE_URL=db
+   DATABASE_PORT=5432
+
+   # API Keys
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+   Note: 
+   - The database credentials should match those in `docker-compose.yml`
+   - Replace `your_openai_api_key` with your actual OpenAI API key
+   - `DATABASE_URL=db` refers to the database service name in Docker Compose
+
+2. For development, you can also use `.env.development`:
+   ```bash
+   DATABASE_NAME=your_database_name
+   DATABASE_USER=your_database_user
+   DATABASE_PASSWORD=your_database_password
+   DATABASE_URL=localhost
+   DATABASE_PORT=5432
+   OPENAI_API_KEY=your_openai_api_key
+   ```
 
 ### Quick Start with Docker Compose
 
@@ -44,13 +72,7 @@ This hybrid approach provides more accurate and contextually relevant results co
    cd Backend
    ```
 
-2. Create a `.env` file in the root directory:
-   ```bash
-   OPENAI_API_KEY=your_openai_api_key
-   GROQ_API_KEY=your_groq_api_key
-   ```
-
-3. Build and start the containers:
+2. Build and start the containers:
    ```bash
    docker-compose up --build
    ```
