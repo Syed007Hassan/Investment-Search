@@ -38,24 +38,6 @@ This hybrid approach provides more accurate and contextually relevant results co
 
 1. Create a `.env` file in the Backend directory with the following variables:
    ```bash
-   # Database Configuration
-   DATABASE_NAME=rag_test
-   DATABASE_USER=postgres
-   DATABASE_PASSWORD=postgres
-   DATABASE_URL=db
-   DATABASE_PORT=5432
-
-   # API Keys
-   OPENAI_API_KEY=your_openai_api_key
-   ```
-
-   Note: 
-   - The database credentials should match those in `docker-compose.yml`
-   - Replace `your_openai_api_key` with your actual OpenAI API key
-   - `DATABASE_URL=db` refers to the database service name in Docker Compose
-
-2. For development, you can also use `.env.development`:
-   ```bash
    DATABASE_NAME=your_database_name
    DATABASE_USER=your_database_user
    DATABASE_PASSWORD=your_database_password
@@ -68,7 +50,7 @@ This hybrid approach provides more accurate and contextually relevant results co
 
 1. Clone the repository:
    ```bash
-   git clone **https://github.com/Syed007Hassan/Investment-Search.git**
+   git clone https://github.com/Syed007Hassan/Investment-Search.git
    cd Backend
    ```
 
@@ -76,6 +58,6 @@ This hybrid approach provides more accurate and contextually relevant results co
    ```bash
    docker-compose up --build
    ```
-4. Access the application:
+3. Access the application:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
