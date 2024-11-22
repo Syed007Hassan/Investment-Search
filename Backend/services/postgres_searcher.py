@@ -15,6 +15,14 @@ embedding_util = Embedding()
 
 
 class PostgresSearcher:
+    """
+    A class that implements hybrid search functionality combining vector and full-text search in PostgreSQL.
+    
+    Attributes:
+        embed_model (str): The embedding model name used for vector search
+        db_model: The SQLAlchemy model class for the database table
+        embed_dimensions (int): Dimensions of the embedding vector
+    """
 
     embed_model: str = "text-embedding-3-small"
 
@@ -27,6 +35,24 @@ class PostgresSearcher:
         self.embed_dimensions = embed_dimensions
 
     def build_filter_clause(self, filters) -> tuple[str, str]:
+        """
+        Builds SQL filter clauses from a list of filter dictionaries.
+        
+        Args:
+            filters (list[dict]): List of filter specifications with keys:
+                - column: The column name
+                - comparison_operator: The SQL comparison operator
+                - value: The value to compare against
+            example:
+                filters = [
+                    {"column": "name", "comparison_operator": "=", "value": "Apple"}
+                ]
+        
+        Returns:
+            tuple[str, str]: A tuple containing:
+                - WHERE clause string
+                - AND clause string
+        """
         if filters is None:
             return "", ""
         filter_clauses = []
@@ -57,6 +83,23 @@ class PostgresSearcher:
         top: int = 5,
         filters: Union[list[dict], None] = None,
     ):
+        """
+        Performs hybrid search combining vector similarity and full-text search.
+        
+        Args:
+            query_text (str | None): The text query for full-text search
+            query_vector (list[float]): The embedding vector for similarity search
+            top (int): Maximum number of results to return
+            filters (list[dict] | None): Additional filters to apply
+        
+        Returns:
+            list: List of matching database objects
+            
+        The search combines three possible approaches:
+        1. Vector search: Uses cosine similarity with embeddings
+        2. Full-text search: Uses PostgreSQL's ts_vector/ts_query
+        3. Hybrid: Combines both approaches with a weighted score
+        """
         filter_clause_where, filter_clause_and = self.build_filter_clause(filters)
 
         table_name = self.db_model.__tablename__
@@ -97,17 +140,17 @@ class PostgresSearcher:
         """
 
         if query_text is not None and len(query_vector) > 0:
-            print(hybrid_query)
+            print("hybrid_query", hybrid_query)
             sql = text(hybrid_query).columns(
                 column("id", Integer), column("score", Float)
             )
         elif len(query_vector) > 0:
-            print(vector_query)
+            print("vector_query", vector_query)
             sql = text(vector_query).columns(
                 column("id", Integer), column("rank", Integer)
             )
         elif query_text is not None:
-            print(fulltext_query)
+            print("fulltext_query", fulltext_query)
             sql = text(fulltext_query).columns(
                 column("id", Integer), column("rank", Integer)
             )
@@ -149,8 +192,20 @@ class PostgresSearcher:
         filters: Union[list[dict], None] = None,
     ):
         """
-        Search items by query text. Optionally converts the query text to a
-        vector if enable_vector_search is True.
+        High-level search function that handles embedding generation and search execution.
+        
+        Args:
+            query_text (str | None): The search query text
+            top (int): Maximum number of results to return
+            enable_vector_search (bool): Whether to use vector similarity search
+            enable_text_search (bool): Whether to use full-text search
+            filters (list[dict] | None): Additional filters to apply
+            
+        Returns:
+            list: List of matching database objects
+            
+        This method automatically generates embeddings if vector search is enabled
+        and provides a simplified interface to the search functionality.
         """
         vector: list[float] = []
         if enable_vector_search and query_text is not None:
