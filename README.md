@@ -62,3 +62,16 @@ This hybrid approach provides more accurate and contextually relevant results co
 3. Access the application:
    - Frontend: http://localhost:3000
    - Backend API: http://localhost:8000
+
+Note: The default docker-compose configuration does not include initial data loading. If you want to load initial sample data, you can modify the command in docker-compose.yml to:
+   ```yaml
+   command: >
+     bash -c "
+       python scripts/load_data.py &&
+       uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+     "
+   ```
+   If you don't want to load initial sample data, you can modify the command in docker-compose.yml to:
+   ```yaml
+   command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+   ```
