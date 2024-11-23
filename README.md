@@ -191,3 +191,9 @@ Consider the following example to illustrate the ranking process:
 - Result: Item A ranks higher than Item B
 
 This hybrid approach ensures that results are ranked considering both semantic similarity (vectors) and keyword relevance (text), providing a more comprehensive search result.
+
+### Demo
+
+https://github.com/user-attachments/assets/bce8fc3b-45ef-4ae7-b94e-aad6b4dcc089
+
+
