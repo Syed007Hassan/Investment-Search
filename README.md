@@ -156,11 +156,23 @@ Let's break down this hybrid search query step by step:
    - Lower cosine distance = better rank
    - Score = 1/(60 + rank)
    - Example: Rank 1 = 1/61 ≈ 0.0164
+   - Lower distance is better because:
+     - Cosine distance measures how far apart two vectors are in high-dimensional space
+     - Distance of 0: Vectors are identical (perfect semantic match)
+     - Distance of 1: Vectors are perpendicular (unrelated content)
+     - Distance of 2: Vectors point in opposite directions (opposite meaning)
+     - Therefore, smaller distances indicate closer semantic similarity
 
 2. Text ranking:
    - Higher ts_rank_cd = better rank
    - Score = 1/(60 + rank)
    - Example: Rank 2 = 1/62 ≈ 0.0161
+   - Higher ts_rank_cd is better because:
+     - It counts the number of matching terms
+     - Considers term frequency (how often terms appear)
+     - Weighs term proximity (how close terms are to each other)
+     - Accounts for term importance in the document
+     - Therefore, more matches and better quality matches result in higher scores
 
 3. Final ranking:
    - Combined score = vector_score + text_score
