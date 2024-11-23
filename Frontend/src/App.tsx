@@ -45,7 +45,7 @@ function App() {
 
         <div className="flex flex-col items-center justify-center">
           <h1 className="text-4xl font-bold text-green-400 mb-12 text-center">
-            Company Search System
+            Company Search & Ranking System
           </h1>
           <div className="w-full max-w-3xl">
             <CompanySearch />
