@@ -196,4 +196,35 @@ This hybrid approach ensures that results are ranked considering both semantic s
 
 https://github.com/user-attachments/assets/bce8fc3b-45ef-4ae7-b94e-aad6b4dcc089
 
+## OpenShift Deployment
+
+### Deployment Steps
+
+1. **Prepare OpenShift Resources**
+   - Convert Docker Compose configuration to OpenShift compatible resources using Kompose
+   - Ensure all required images are accessible to OpenShift
+
+2. **Configure Storage**
+   - Set up persistent volumes for PostgreSQL database
+   - Set up persistent volumes for Redis cache
+   - Configure volume claims for both databases
+
+3. **Configure Environment**
+   - Create secrets for sensitive data (OPENAI_API_KEY, database credentials)
+   - Create configmaps for application configuration
+   - Set up network policies if required
+
+4. **Deploy Components**
+   - Deploy PostgreSQL database with pgvector extension
+   - Deploy Redis cache service
+   - Deploy backend FastAPI application
+   - Deploy frontend React application
+
+5. **Configure Access**
+   - Create routes for frontend and backend services
+   - Configure TLS/SSL if required
+   - Set up any required network policies
+
+Note: Ensure all components have appropriate resource limits and health checks configured.
+
 
