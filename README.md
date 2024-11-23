@@ -75,3 +75,103 @@ Note: The default docker-compose configuration does not include initial data loa
    ```yaml
    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
    ```
+
+## Technical Implementation
+
+### Hybrid Search Architecture
+
+The system implements a sophisticated hybrid search approach combining two powerful search methodologies:
+
+1. **Vector Similarity Search (Semantic Search)**
+   - Uses OpenAI's text-embedding-3-small model to convert company descriptions into 1536-dimensional vectors
+   - Stores these vectors in PostgreSQL using the pgvector extension
+   - Enables semantic understanding of search queries
+
+2. **Full-Text Search (Keyword Search)**
+   - Utilizes PostgreSQL's built-in full-text search capabilities
+   - Performs exact and partial keyword matching
+
+### Search & Ranking Process
+
+Let's break down this hybrid search query step by step:
+
+1. **First CTE (Common Table Expression) - Vector Search:**
+   ```sql
+   WITH vector_search AS (
+       SELECT id, 
+              RANK () OVER (ORDER BY embedding <=> :embedding) AS rank
+       FROM "Company"
+       ORDER BY embedding <=> :embedding
+       LIMIT 20
+   )
+   ```
+   - Creates a temporary result set named `vector_search`
+   - `embedding <=> :embedding`: Calculates cosine distance between stored embeddings and query embedding
+   - `RANK() OVER`: Assigns ranks based on similarity (lower distance = better rank)
+   - `LIMIT 20`: Takes top 20 most similar vectors
+
+2. **Second CTE - Full-text Search:**
+   ```sql
+   fulltext_search AS (
+       SELECT id, 
+              RANK () OVER (ORDER BY ts_rank_cd(to_tsvector('english', content), query) DESC) 
+       FROM "Company", 
+            plainto_tsquery('english', :query) query
+       WHERE to_tsvector('english', content) @@ query
+       ORDER BY ts_rank_cd(to_tsvector('english', content), query) DESC
+       LIMIT 20
+   )
+   ```
+   - Creates another temporary result set named `fulltext_search`
+   - `to_tsvector('english', content)`: Converts content to searchable tokens
+   - `plainto_tsquery('english', :query)`: Converts search query to search terms
+   - `@@`: Text search match operator
+   - `ts_rank_cd`: Calculates text search relevancy score
+   - `LIMIT 20`: Takes top 20 best text matches
+
+3. **Final Combined Query:**
+   ```sql
+   SELECT
+       COALESCE(vector_search.id, fulltext_search.id) AS id,
+       COALESCE(1.0 / (:k + vector_search.rank), 0.0) +
+       COALESCE(1.0 / (:k + fulltext_search.rank), 0.0) AS score
+   FROM vector_search
+   FULL OUTER JOIN fulltext_search ON vector_search.id = fulltext_search.id
+   ORDER BY score DESC
+   LIMIT 20
+   ```
+   - `FULL OUTER JOIN`: Combines results from both searches, keeping all matches from either
+   - Score calculation:
+     ```sql
+     COALESCE(1.0 / (:k + vector_search.rank), 0.0) +
+     COALESCE(1.0 / (:k + fulltext_search.rank), 0.0)
+     ```
+     - `:k` is 60 (normalization factor)
+     - Lower ranks produce higher scores (1/60+rank)
+     - `COALESCE`: If a result only appears in one search, its other score is 0
+   - `ORDER BY score DESC`: Ranks final results by combined score
+   - `LIMIT 20`: Returns top 20 combined results
+
+**Ranking Process:**
+1. Vector ranking:
+   - Lower cosine distance = better rank
+   - Score = 1/(60 + rank)
+
+2. Text ranking:
+   - Higher ts_rank_cd = better rank
+   - Score = 1/(60 + rank)
+
+3. Final ranking:
+   - Combined score = vector_score + text_score
+   - Higher combined score = better overall match
+
+### Example
+Consider the following example to illustrate the ranking process:
+
+Item A: vector_rank=1, text_rank=2
+Score = 1/61 + 1/62 ≈ 0.0328
+Item B: vector_rank=5, text_rank=1
+Score = 1/65 + 1/61 ≈ 0.0317
+Result: Item A ranks higher than Item B
+
+This hybrid approach ensures that results are ranked considering both semantic similarity (vectors) and keyword relevance (text), providing a more comprehensive search result.
