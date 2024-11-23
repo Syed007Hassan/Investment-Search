@@ -109,6 +109,7 @@ Let's break down this hybrid search query step by step:
    - `embedding <=> :embedding`: Calculates cosine distance between stored embeddings and query embedding
    - `RANK() OVER`: Assigns ranks based on similarity (lower distance = better rank)
    - `LIMIT 20`: Takes top 20 most similar vectors
+   - Vector distance ranges from 0-2, where 0 means vectors are identical and 2 means opposite
 
 2. **Second CTE - Full-text Search:**
    ```sql
@@ -126,7 +127,7 @@ Let's break down this hybrid search query step by step:
    - `to_tsvector('english', content)`: Converts content to searchable tokens
    - `plainto_tsquery('english', :query)`: Converts search query to search terms
    - `@@`: Text search match operator
-   - `ts_rank_cd`: Calculates text search relevancy score
+   - `ts_rank_cd`: Calculates text search relevancy score (higher score means better match)
    - `LIMIT 20`: Takes top 20 best text matches
 
 3. **Final Combined Query:**
@@ -141,14 +142,12 @@ Let's break down this hybrid search query step by step:
    LIMIT 20
    ```
    - `FULL OUTER JOIN`: Combines results from both searches, keeping all matches from either
-   - Score calculation:
-     ```sql
-     COALESCE(1.0 / (:k + vector_search.rank), 0.0) +
-     COALESCE(1.0 / (:k + fulltext_search.rank), 0.0)
-     ```
-     - `:k` is 60 (normalization factor)
-     - Lower ranks produce higher scores (1/60+rank)
-     - `COALESCE`: If a result only appears in one search, its other score is 0
+   - `COALESCE` for IDs: Ensures we capture matches from either search method
+   - `COALESCE` for scoring: Handles cases where an item only matches one search type (defaults to 0)
+   - Score calculation uses k=60 as normalization factor to:
+     - Prevent division by zero
+     - Normalize scores to a comparable range
+     - Reduce impact of small rank differences
    - `ORDER BY score DESC`: Ranks final results by combined score
    - `LIMIT 20`: Returns top 20 combined results
 
@@ -156,22 +155,25 @@ Let's break down this hybrid search query step by step:
 1. Vector ranking:
    - Lower cosine distance = better rank
    - Score = 1/(60 + rank)
+   - Example: Rank 1 = 1/61 ≈ 0.0164
 
 2. Text ranking:
    - Higher ts_rank_cd = better rank
    - Score = 1/(60 + rank)
+   - Example: Rank 2 = 1/62 ≈ 0.0161
 
 3. Final ranking:
    - Combined score = vector_score + text_score
    - Higher combined score = better overall match
+   - Normalization ensures fair combination despite different scoring scales
 
 ### Example
 Consider the following example to illustrate the ranking process:
 
-Item A: vector_rank=1, text_rank=2
-Score = 1/61 + 1/62 ≈ 0.0328
-Item B: vector_rank=5, text_rank=1
-Score = 1/65 + 1/61 ≈ 0.0317
-Result: Item A ranks higher than Item B
+- Item A: vector_rank=1, text_rank=2
+  - Score = 1/61 + 1/62 ≈ 0.0328
+- Item B: vector_rank=5, text_rank=1
+  - Score = 1/65 + 1/61 ≈ 0.0317
+- Result: Item A ranks higher than Item B
 
 This hybrid approach ensures that results are ranked considering both semantic similarity (vectors) and keyword relevance (text), providing a more comprehensive search result.
