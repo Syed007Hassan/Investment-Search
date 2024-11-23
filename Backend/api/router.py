@@ -51,7 +51,7 @@ async def add_company(company: CompanyCreate):
         session.commit()
     
     await redis_service.delete("all_companies")
-    await redis_service.delete_pattern("search_company:*")
+    await redis_service.scan_and_delete("search_company:*")
     
     return {"message": "Company added successfully"}
 
@@ -108,5 +108,24 @@ async def get_companies():
                 "companies": companies_dict,
                 "source": "database"
             }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(company_id: int):
+    try:
+        with get_db_session() as session:
+            company = session.query(Company).filter(Company.id == company_id).first()
+            if not company:
+                raise HTTPException(status_code=404, detail="Company not found")
+            
+            session.delete(company)
+            session.commit()
+            
+        # Clear cache after deletion
+        await redis_service.delete("all_companies")
+        await redis_service.scan_and_delete("search_company:*")
+        
+        return {"message": "Company deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

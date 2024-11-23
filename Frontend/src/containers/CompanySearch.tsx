@@ -3,14 +3,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import SearchInput from '../components/SearchInput';
 import ReactMarkdown from 'react-markdown';
-
-interface Company {
-  name: string;
-  description: string;
-  industry: string;
-  size: string;
-  location: string;
-}
+import { Company } from '../types/company';
 
 interface SearchResponse {
   response: string;

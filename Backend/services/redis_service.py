@@ -38,4 +38,23 @@ class RedisService:
             return bool(self.redis_client.delete(key))
         except Exception as e:
             print(f"Redis delete error: {e}")
+            return False
+
+    async def keys(self, pattern: str) -> list:
+        """Get all keys matching the pattern"""
+        try:
+            return self.redis_client.keys(pattern)
+        except Exception as e:
+            print(f"Redis keys error: {e}")
+            return []
+
+    async def scan_and_delete(self, pattern: str) -> bool:
+        """Scan and delete all keys matching the pattern"""
+        try:
+            keys = self.redis_client.keys(pattern)
+            if keys:
+                return bool(self.redis_client.delete(*keys))
+            return True
+        except Exception as e:
+            print(f"Redis scan and delete error: {e}")
             return False 

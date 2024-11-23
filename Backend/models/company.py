@@ -22,11 +22,12 @@ class Company(Base):
     
     def to_dict(self):
         return {
-            "name": self.name,
-            "description": self.description,
-            "industry": self.industry,
-            "size": self.size,
-            "location": self.location,
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'industry': self.industry,
+            'size': self.size,
+            'location': self.location
         }
 
     @staticmethod
