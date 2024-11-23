@@ -20,15 +20,6 @@ chat_service = ChatService()
 embedding_util = Embedding()
 redis_service = RedisService()
 
-
-class ChatRequest(BaseModel):
-    """
-    This class is used to model the request for the chat endpoint.
-    """
-
-    query: str
-
-
 class CompanyCreate(BaseModel):
     name: str
     description: str
@@ -39,23 +30,6 @@ class CompanyCreate(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
-
-
-@api_router.post("/chat", response_class=JSONResponse)
-async def chat(chat_request: ChatRequest):
-    """
-    This function is used to chat with the chatbot.
-    """
-    response, product_recommendations = chat_service.generate_response(
-        chat_request.query
-    )
-    return {
-        "response": response,
-        "product_recommendations": [
-            product.to_dict() for product in product_recommendations
-        ],
-    }
-
 
 @api_router.post("/companies")
 async def add_company(company: CompanyCreate):
@@ -77,20 +51,37 @@ async def add_company(company: CompanyCreate):
         session.commit()
     
     await redis_service.delete("all_companies")
+    await redis_service.delete_pattern("search_company:*")
     
     return {"message": "Company added successfully"}
 
 
 @api_router.post("/search-company", response_class=JSONResponse)
 async def search_company(search_request: SearchRequest):
+    cache_key = f"search_company:{search_request.query}"
+    cached_results = await redis_service.get(cache_key)
+    
+    if cached_results:
+        return {
+            "response": cached_results["response"],
+            "company_recommendations": cached_results["company_recommendations"],
+            "source": "cache"
+        }
+
     response, company_recommendations = chat_service.generate_response(
         search_request.query
     )
-    return {
+    
+    results = {
         "response": response,
-        "company_recommendations": [
-            company.to_dict() for company in company_recommendations
-        ],
+        "company_recommendations": [company.to_dict() for company in company_recommendations]
+    }
+    
+    await redis_service.set(cache_key, results, 3600)
+    
+    return {
+        **results,
+        "source": "database"
     }
 
 
@@ -99,7 +90,6 @@ async def get_companies():
     """Get all companies with Redis caching"""
     cache_key = "all_companies"
     
-    # Clean cache implementation
     cached_companies = await redis_service.get(cache_key)
     if cached_companies:
         return {
@@ -107,13 +97,11 @@ async def get_companies():
             "source": "cache"
         }
 
-    # If not in cache, get from database
     try:
         with get_db_session() as session:
             companies = session.query(Company).order_by(Company.created_at.desc()).all()
             companies_dict = [company.to_dict() for company in companies]
             
-            # Store in cache for 1 hour
             await redis_service.set(cache_key, companies_dict, 3600)
             
             return {

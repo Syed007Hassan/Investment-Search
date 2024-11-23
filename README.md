@@ -9,12 +9,13 @@ The system leverages a sophisticated hybrid search architecture that:
 - Implements PostgreSQL's full-text search capabilities for keyword matching
 - Combines both approaches with a weighted scoring system for optimal ranking
 - Utilizes GPT-4o for intelligent search result processing and summarization
+- Utilizes Redis for caching frequently accessed data to improve performance
 
 This hybrid approach provides more accurate and contextually relevant results compared to traditional keyword-only search systems.
 
 ## Technologies Used
 - **Backend**: FastAPI
-- **Database**: PostgreSQL with pgvector extension
+- **Database**: PostgreSQL with pgvector extension, Redis for caching
 - **Vector Embeddings**: OpenAI API
 - **LLM Processing**: GPT-4o
 - **Frontend**: React
