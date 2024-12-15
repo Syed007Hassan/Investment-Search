@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: backend:latest
+        imagePullPolicy: Never  # For local development
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_NAME
+          value: "postgres"
+        - name: DATABASE_USER
+          value: "postgres"
+        - name: DATABASE_PASSWORD
+          value: "postgres"
+        - name: DATABASE_URL
+          value: "postgres-service"
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: openai-api-key 
+        volumeMounts:
+        - name: backend-source
+          mountPath: /app
+      volumes:
+      - name: backend-source
+        hostPath:
+          path: /backend-source  # This path is inside the kind node
+          type: Directory
