@@ -34,25 +34,31 @@ class ChatService:
     def __init__(self):
         self.client = Groq(api_key=config.GROQ_API_KEY)
         self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
-        self.model = "llama3-groq-70b-8192-tool-use-preview"
+        self.model = "llama-3.3-70b-versatile"
         self.openai_model = "gpt-4o-2024-08-06"
         self.searcher = PostgresSearcher(Company)
+        self.open_source = True
 
     def search_companies(self, search_query: str):
         """
         This function is used to search companies based on the search_query.
         """
         company_recommendations = []
-        response: list[Company] = self.searcher.search_and_embed(search_query)
-        company_recommendations.extend(response)
-        if not response:
-            return "No companies found for the given search query."
-        response = "\n".join([i.content for i in response])
-
-        return (
-            "Retrieved the following companies based on your search query:\n"
-            f"{response}"
-        ), company_recommendations
+        try:
+            logger.info(f"Searching companies with query: {search_query}")
+            response: list[Company] = self.searcher.search_and_embed(search_query)
+            company_recommendations.extend(response)
+            if not response:
+                return "No companies found for the given search query.", []
+            response_text = "\n".join([i.content for i in response])
+            
+            return (
+                "Retrieved the following companies based on your search query:\n"
+                f"{response_text}"
+            ), company_recommendations
+        except Exception as e:
+            logger.error(f"Error searching companies: {e}")
+            return f"Error searching companies: {str(e)}", []
 
     def search_tool_definition(self):
         """
@@ -90,13 +96,20 @@ class ChatService:
         ]
         company_recommendations = []
         while True:
-            response = self.openai_client.chat.completions.create(
-                model=self.openai_model,
-                messages=messages,
-                tool_choice="auto",
-                tools=[self.search_tool_definition()],
-            )
-
+            if self.open_source:
+                response = self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    tool_choice="auto",
+                    tools=[self.search_tool_definition()],
+                )
+            else:
+                response = self.openai_client.chat.completions.create(
+                    model=self.openai_model,
+                    messages=messages,
+                    tool_choice="auto",
+                    tools=[self.search_tool_definition()],
+                )
             response_message = response.choices[0].message
 
             if response_message.tool_calls:

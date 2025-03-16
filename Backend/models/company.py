@@ -13,7 +13,7 @@ class Company(Base):
     industry = Column(String)
     size = Column(String)
     location = Column(String)
-    embedding = Column(Vector(1536))
+    embedding = Column(Vector(1024))
     content = Column(Text)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 

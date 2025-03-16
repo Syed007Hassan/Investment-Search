@@ -7,11 +7,13 @@ database using a hybrid search strategy.
 from typing import Union
 from sqlalchemy import Float, Integer, column, select, text
 from sqlalchemy.orm import joinedload
+import logging
 
 from services.embedding import Embedding
 from models.database import get_db_session
 
 embedding_util = Embedding()
+logger = logging.getLogger(__name__)
 
 
 class PostgresSearcher:
@@ -24,12 +26,12 @@ class PostgresSearcher:
         embed_dimensions (int): Dimensions of the embedding vector
     """
 
-    embed_model: str = "text-embedding-3-small"
+    embed_model: str = "multilingual-e5-large"
 
     def __init__(
         self,
         db_model,
-        embed_dimensions: Union[int, None] = 1536,
+        embed_dimensions: Union[int, None] = 1024,
     ):
         self.db_model = db_model
         self.embed_dimensions = embed_dimensions
@@ -209,10 +211,28 @@ class PostgresSearcher:
         """
         vector: list[float] = []
         if enable_vector_search and query_text is not None:
-            vector = embedding_util.generate(
-                query_text,
-                self.embed_dimensions,
-            )
+            try:
+                # Try using Pinecone embeddings first
+                logger.info(f"Generating Pinecone embedding for search query: {query_text}")
+                vector = embedding_util.generate_pinecone(
+                    query_text,
+                    self.embed_dimensions,
+                )
+                logger.info("Successfully generated Pinecone embedding for search query")
+            except Exception as e:
+                logger.error(f"Error generating Pinecone embedding: {e}")
+                # Fallback to OpenAI if Pinecone fails
+                logger.info(f"Falling back to OpenAI embedding for search query")
+                try:
+                    vector = embedding_util.generate(
+                        query_text,
+                        self.embed_dimensions,
+                    )
+                except Exception as openai_error:
+                    logger.error(f"Error generating OpenAI embedding: {openai_error}")
+                    # If both fail, continue with text search only
+                    vector = []
+                    
         if not enable_text_search:
             query_text = None
 

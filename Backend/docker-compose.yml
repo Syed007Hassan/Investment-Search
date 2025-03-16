@@ -12,6 +12,10 @@ services:
       - DATABASE_URL=db
       - DATABASE_PORT=5432
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     depends_on:
       db:
         condition: service_healthy
@@ -23,6 +27,8 @@ services:
       - app-network
     command: >
       bash -c "
+        # python scripts/reset_db.py &&
+        # python scripts/load_data.py &&
         uvicorn main:app --host 0.0.0.0 --port 8000 --reload
       "
 

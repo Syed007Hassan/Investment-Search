@@ -14,7 +14,8 @@ class Config(object):
     """
 
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY") or "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"
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
+    PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "postgres")
     DATABASE_USER: str = os.getenv("DATABASE_USER", "postgres")
     DATABASE_PASSWORD: str = os.getenv("DATABASE_PASSWORD", "postgres")

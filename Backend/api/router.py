@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter, Request
 from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
+import logging
 
 from services.chat import ChatService
 from models.company import Company
@@ -19,6 +20,7 @@ templates = Jinja2Templates(directory="templates")
 chat_service = ChatService()
 embedding_util = Embedding()
 redis_service = RedisService()
+logger = logging.getLogger(__name__)
 
 class CompanyCreate(BaseModel):
     name: str
@@ -34,7 +36,21 @@ class SearchRequest(BaseModel):
 @api_router.post("/companies")
 async def add_company(company: CompanyCreate):
     content = f"{company.name}\n{company.description}\n{company.industry}\n{company.size}\n{company.location}"
-    embedding = embedding_util.generate(content)
+    
+    try:
+        # Use Pinecone embeddings
+        logger.info(f"Generating Pinecone embedding for company: {company.name}")
+        embedding = embedding_util.generate_pinecone(content)
+        logger.info(f"Successfully generated Pinecone embedding for company: {company.name}")
+    except Exception as e:
+        logger.error(f"Error generating Pinecone embedding: {e}")
+        # Fallback to OpenAI if Pinecone fails
+        logger.info(f"Falling back to OpenAI embedding for company: {company.name}")
+        try:
+            embedding = embedding_util.generate(content)
+        except Exception as openai_error:
+            logger.error(f"Error generating OpenAI embedding: {openai_error}")
+            raise HTTPException(status_code=500, detail="Failed to generate embeddings")
     
     new_company = Company(
         name=company.name,
