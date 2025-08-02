@@ -11,7 +11,7 @@ distro==1.9.0
 exceptiongroup==1.2.2
 executing==2.0.1
 fastapi==0.112.1
-greenlet==3.0.3
+greenlet>=3.1.0
 groq==0.9.0
 h11==0.14.0
 httpcore==1.0.5
@@ -28,7 +28,7 @@ jupyter_core==5.7.2
 MarkupSafe==2.1.5
 matplotlib-inline==0.1.7
 nest-asyncio==1.6.0
-numpy==2.0.1
+numpy>=2.1.0
 openai==1.42.0
 packaging==24.1
 parso==0.8.4
@@ -38,7 +38,7 @@ pinecone[grpc]>=3.0.0
 platformdirs==4.2.2
 prompt_toolkit==3.0.47
 psutil==6.0.0
-psycopg2==2.9.9
+psycopg2-binary>=2.9.9
 ptyprocess==0.7.0
 pure_eval==0.2.3
 pydantic==2.8.2
@@ -60,3 +60,4 @@ uvicorn==0.30.6
 wcwidth==0.2.13
 zipp==3.20.0
 redis==5.0.1
+qdrant-client>=1.11.0,<2.0.0

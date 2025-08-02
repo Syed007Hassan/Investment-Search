@@ -8,6 +8,7 @@ from groq import Groq
 from openai import OpenAI
 
 from services.postgres_searcher import PostgresSearcher
+from services.qdrant_searcher import QdrantSearcher
 from config.main import config
 from models.company import Company
 
@@ -35,29 +36,46 @@ class ChatService:
         self.client = Groq(api_key=config.GROQ_API_KEY)
         self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
         self.model = "llama-3.3-70b-versatile"
-        self.openai_model = "gpt-4o-2024-08-06"
-        self.searcher = PostgresSearcher(Company)
+        self.openai_model = "gpt-4o"
         self.open_source = True
+        self.use_qdrant = True
+        self.use_postgres = False
+        
+        # Initialize searcher based on preference
+        if self.use_qdrant:
+            logger.info("Using Qdrant as vector database for search")
+            self.searcher = QdrantSearcher(Company)
+        elif self.use_postgres:
+            logger.info("Using PostgreSQL as vector database for search")
+            self.searcher = PostgresSearcher(Company)
 
     def search_companies(self, search_query: str):
         """
         This function is used to search companies based on the search_query.
+        Works with both PostgreSQL and Qdrant searchers.
         """
         company_recommendations = []
         try:
-            logger.info(f"Searching companies with query: {search_query}")
+            logger.info(f"Searching companies with query: {search_query} using {'Qdrant' if self.use_qdrant else 'PostgreSQL'}")
             response: list[Company] = self.searcher.search_and_embed(search_query)
             company_recommendations.extend(response)
+            
             if not response:
                 return "No companies found for the given search query.", []
-            response_text = "\n".join([i.content for i in response])
+            
+            # Create response text from company content
+            response_text = "\n".join([
+                company.content if company.content else company.to_str() 
+                for company in response
+            ])
             
             return (
-                "Retrieved the following companies based on your search query:\n"
+                f"Retrieved the following companies based on your search query (using {'Qdrant' if self.use_qdrant else 'PostgreSQL'}):\n"
                 f"{response_text}"
             ), company_recommendations
+            
         except Exception as e:
-            logger.error(f"Error searching companies: {e}")
+            logger.error(f"Error searching companies with {'Qdrant' if self.use_qdrant else 'PostgreSQL'}: {e}")
             return f"Error searching companies: {str(e)}", []
 
     def search_tool_definition(self):

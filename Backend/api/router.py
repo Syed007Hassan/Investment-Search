@@ -13,6 +13,7 @@ from models.company import Company
 from services.embedding import Embedding
 from models.database import get_db_session
 from services.redis_service import RedisService
+from services.qdrant_searcher import QdrantSearcher
 from fastapi import HTTPException
 
 api_router = APIRouter()
@@ -38,16 +39,14 @@ async def add_company(company: CompanyCreate):
     content = f"{company.name}\n{company.description}\n{company.industry}\n{company.size}\n{company.location}"
     
     try:
-        # Use Pinecone embeddings
         logger.info(f"Generating Pinecone embedding for company: {company.name}")
-        embedding = embedding_util.generate_pinecone(content)
+        embedding = embedding_util.generate_pinecone(content, 1024)
         logger.info(f"Successfully generated Pinecone embedding for company: {company.name}")
     except Exception as e:
         logger.error(f"Error generating Pinecone embedding: {e}")
-        # Fallback to OpenAI if Pinecone fails
         logger.info(f"Falling back to OpenAI embedding for company: {company.name}")
         try:
-            embedding = embedding_util.generate(content)
+            embedding = embedding_util.generate(content, 1024)
         except Exception as openai_error:
             logger.error(f"Error generating OpenAI embedding: {openai_error}")
             raise HTTPException(status_code=500, detail="Failed to generate embeddings")
@@ -65,6 +64,11 @@ async def add_company(company: CompanyCreate):
     with get_db_session() as session:
         session.add(new_company)
         session.commit()
+        session.refresh(new_company)
+    
+    if chat_service.use_qdrant:
+        qdrant_searcher = QdrantSearcher(Company)
+        qdrant_searcher.upsert_company(new_company)
     
     await redis_service.delete("all_companies")
     await redis_service.scan_and_delete("search_company:*")
