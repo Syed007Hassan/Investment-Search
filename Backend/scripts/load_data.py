@@ -12,7 +12,6 @@ from models.company import Company
 from models.database import get_db_session
 from services.embedding import Embedding
 from services.chat import ChatService
-from services.qdrant_searcher import QdrantSearcher
 
 embedding_service = Embedding()
 logger = logging.getLogger(__name__)
@@ -38,25 +37,13 @@ def load_data():
                 logger.info(f"Successfully generated Pinecone embedding for company: {company.name}")
             except Exception as e:
                 logger.error(f"Error generating Pinecone embedding: {e}")
-                logger.info(f"Falling back to OpenAI embedding for company: {company.name}")
-                try:
-                    company.embedding = embedding_service.generate(company.content, 1024)
-                except Exception as openai_error:
-                    logger.error(f"Error generating OpenAI embedding: {openai_error}")
-                    logger.error(f"Skipping company: {company.name} due to embedding generation failure")
-                    continue
+                logger.error(f"Skipping company: {company.name} due to embedding generation failure")
+                continue
                 
             session.add(company)
         session.commit()
         
-        chat_service = ChatService()
-        if chat_service.use_qdrant:
-            logger.info("Syncing companies to Qdrant...")
-            qdrant_searcher = QdrantSearcher(Company)
-            for item in data:
-                company_query = session.query(Company).filter_by(name=item['name']).first()
-                if company_query:
-                    qdrant_searcher.upsert_company(company_query)
+        # No Qdrant sync; using PostgreSQL only
 
 
 if __name__ == "__main__":

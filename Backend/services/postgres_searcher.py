@@ -221,17 +221,8 @@ class PostgresSearcher:
                 logger.info("Successfully generated Pinecone embedding for search query")
             except Exception as e:
                 logger.error(f"Error generating Pinecone embedding: {e}")
-                # Fallback to OpenAI if Pinecone fails
-                logger.info(f"Falling back to OpenAI embedding for search query")
-                try:
-                    vector = embedding_util.generate(
-                        query_text,
-                        self.embed_dimensions,
-                    )
-                except Exception as openai_error:
-                    logger.error(f"Error generating OpenAI embedding: {openai_error}")
-                    # If both fail, continue with text search only
-                    vector = []
+                # Continue with text search only if embedding fails
+                vector = []
                     
         if not enable_text_search:
             query_text = None

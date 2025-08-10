@@ -3,9 +3,8 @@ This file is responsible for routing the incoming requests to the respective end
 """
 
 from fastapi.responses import JSONResponse
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from pydantic import BaseModel
-from fastapi.templating import Jinja2Templates
 import logging
 
 from services.chat import ChatService
@@ -13,11 +12,9 @@ from models.company import Company
 from services.embedding import Embedding
 from models.database import get_db_session
 from services.redis_service import RedisService
-from services.qdrant_searcher import QdrantSearcher
 from fastapi import HTTPException
 
 api_router = APIRouter()
-templates = Jinja2Templates(directory="templates")
 chat_service = ChatService()
 embedding_util = Embedding()
 redis_service = RedisService()
@@ -44,12 +41,7 @@ async def add_company(company: CompanyCreate):
         logger.info(f"Successfully generated Pinecone embedding for company: {company.name}")
     except Exception as e:
         logger.error(f"Error generating Pinecone embedding: {e}")
-        logger.info(f"Falling back to OpenAI embedding for company: {company.name}")
-        try:
-            embedding = embedding_util.generate(content, 1024)
-        except Exception as openai_error:
-            logger.error(f"Error generating OpenAI embedding: {openai_error}")
-            raise HTTPException(status_code=500, detail="Failed to generate embeddings")
+        raise HTTPException(status_code=500, detail="Failed to generate embeddings")
     
     new_company = Company(
         name=company.name,
@@ -66,9 +58,7 @@ async def add_company(company: CompanyCreate):
         session.commit()
         session.refresh(new_company)
     
-    if chat_service.use_qdrant:
-        qdrant_searcher = QdrantSearcher(Company)
-        qdrant_searcher.upsert_company(new_company)
+    # Sync to vector DB not required; using PostgreSQL only
     
     await redis_service.delete("all_companies")
     await redis_service.scan_and_delete("search_company:*")

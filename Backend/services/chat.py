@@ -5,10 +5,8 @@
 import logging
 import json
 from groq import Groq
-from openai import OpenAI
 
 from services.postgres_searcher import PostgresSearcher
-from services.qdrant_searcher import QdrantSearcher
 from config.main import config
 from models.company import Company
 
@@ -34,29 +32,19 @@ class ChatService:
 
     def __init__(self):
         self.client = Groq(api_key=config.GROQ_API_KEY)
-        self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
         self.model = "llama-3.3-70b-versatile"
-        self.openai_model = "gpt-4o"
-        self.open_source = True
-        self.use_qdrant = True
-        self.use_postgres = False
-        
-        # Initialize searcher based on preference
-        if self.use_qdrant:
-            logger.info("Using Qdrant as vector database for search")
-            self.searcher = QdrantSearcher(Company)
-        elif self.use_postgres:
-            logger.info("Using PostgreSQL as vector database for search")
-            self.searcher = PostgresSearcher(Company)
+        # Always use PostgreSQL searcher
+        logger.info("Using PostgreSQL as vector database for search")
+        self.searcher = PostgresSearcher(Company)
 
     def search_companies(self, search_query: str):
         """
         This function is used to search companies based on the search_query.
-        Works with both PostgreSQL and Qdrant searchers.
+        Works with PostgreSQL searcher.
         """
         company_recommendations = []
         try:
-            logger.info(f"Searching companies with query: {search_query} using {'Qdrant' if self.use_qdrant else 'PostgreSQL'}")
+            logger.info(f"Searching companies with query: {search_query} using PostgreSQL")
             response: list[Company] = self.searcher.search_and_embed(search_query)
             company_recommendations.extend(response)
             
@@ -70,12 +58,12 @@ class ChatService:
             ])
             
             return (
-                f"Retrieved the following companies based on your search query (using {'Qdrant' if self.use_qdrant else 'PostgreSQL'}):\n"
+                "Retrieved the following companies based on your search query (using PostgreSQL):\n"
                 f"{response_text}"
             ), company_recommendations
             
         except Exception as e:
-            logger.error(f"Error searching companies with {'Qdrant' if self.use_qdrant else 'PostgreSQL'}: {e}")
+            logger.error(f"Error searching companies with PostgreSQL: {e}")
             return f"Error searching companies: {str(e)}", []
 
     def search_tool_definition(self):
@@ -114,20 +102,12 @@ class ChatService:
         ]
         company_recommendations = []
         while True:
-            if self.open_source:
-                response = self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    tool_choice="auto",
-                    tools=[self.search_tool_definition()],
-                )
-            else:
-                response = self.openai_client.chat.completions.create(
-                    model=self.openai_model,
-                    messages=messages,
-                    tool_choice="auto",
-                    tools=[self.search_tool_definition()],
-                )
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                tool_choice="auto",
+                tools=[self.search_tool_definition()],
+            )
             response_message = response.choices[0].message
 
             if response_message.tool_calls:

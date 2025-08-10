@@ -3,48 +3,46 @@
 <img width="1354" alt="image" src="https://github.com/user-attachments/assets/ee369f55-6585-4888-8418-007487a48f8f">
 
 ## Overview
-This application implements an advanced company search and ranking system using a hybrid search approach that combines vector similarity search and traditional full-text search. The system supports two vector database options: PostgreSQL with PgVector extension for integrated storage, or Qdrant Cloud for specialized vector search performance. This dual approach ensures both semantic relevance and keyword accuracy in search results, making it particularly effective for company discovery and ranking.
+This application implements an advanced company search and ranking system using a hybrid search approach that combines vector similarity search and traditional full-text search. The system uses PostgreSQL with PgVector extension for integrated storage. This approach ensures both semantic relevance and keyword accuracy in search results, making it particularly effective for company discovery and ranking.
 
 ## Description
 The system leverages a sophisticated hybrid search architecture that:
-- Uses OpenAI or Pinecone embeddings to convert company descriptions into vector representations
-- Supports dual vector database options: PostgreSQL with PgVector or Qdrant Cloud
+- Uses Pinecone embeddings to convert company descriptions into vector representations
+- Uses PostgreSQL with PgVector for vector search and storage
 - Implements PostgreSQL's full-text search capabilities for keyword matching
 - Combines both approaches with a weighted scoring system for optimal ranking
-- Utilizes GPT-4o or Groq's LLaMA models for intelligent search result processing and summarization
+- Utilizes Groq's LLaMA models for intelligent search result processing and summarization
 - Utilizes Redis for caching frequently accessed data to improve performance
-- Automatic synchronization between PostgreSQL and Qdrant when using Qdrant mode
+ 
 
 This hybrid approach provides more accurate and contextually relevant results compared to traditional keyword-only search systems.
 
 ## Technologies Used
 - **Backend**: FastAPI
-- **Database**: PostgreSQL with pgvector extension, Qdrant Cloud, Redis for caching
-- **Vector Embeddings**: OpenAI API / Pinecone Inference API
-- **LLM Processing**: OpenAI GPT-4o / Groq LLaMA models
+- **Database**: PostgreSQL with pgvector extension, Redis for caching
+- **Vector Embeddings**: Pinecone Inference API
+- **LLM Processing**: Groq LLaMA models
 - **Frontend**: React
 - **Containerization**: Docker
 - **ORM**: SQLAlchemy
 
 ## Key Features
 - Hybrid search combining vector similarity and full-text search
-- Dual vector database support (PostgreSQL PgVector or Qdrant Cloud)
 - Real-time company ranking based on search relevance
 - Company information management (add/search) and retrieval
-- Automatic data synchronization between PostgreSQL and Qdrant
 - LLM powered tool calling
 - Docker-based application deployment
-- Flexible embedding options (OpenAI or Pinecone)
-- Choice of LLM providers (OpenAI or Groq)
+- Pinecone embeddings
+- Groq as LLM provider
 
 ## Getting Started
 
 ### Prerequisites
 - Docker and Docker Compose
-- OpenAI API key (for OpenAI embeddings and LLM processing)
+- Pinecone API key (for embeddings)
 - Pinecone API key (for Pinecone embeddings)
 - Groq API key (for Groq LLM models)
-- Qdrant Cloud account and API key (optional, for Qdrant vector database)
+ 
 
 ### Environment Setup
 
@@ -55,14 +53,9 @@ This hybrid approach provides more accurate and contextually relevant results co
    DATABASE_PASSWORD=your_database_password
    DATABASE_URL=localhost
    DATABASE_PORT=5432
-   OPENAI_API_KEY=your_openai_api_key
    PINECONE_API_KEY=your_pinecone_api_key
    GROQ_API_KEY=your_groq_api_key
    
-   # Qdrant Configuration (Optional - for Qdrant Cloud)
-   QDRANT_API_KEY=your_qdrant_api_key
-   QDRANT_URL=https://your-cluster.qdrant.io
-   QDRANT_COLLECTION_NAME=companies
    ```
 
 ### Quick Start with Docker Compose
@@ -113,7 +106,7 @@ The application provides several options for database setup:
 
 ### System Architecture
 
-The system follows a microservices architecture with flexible vector database options:
+The system follows a microservices architecture with PostgreSQL as the vector database:
 
 ```mermaid
 graph TB
@@ -123,18 +116,14 @@ graph TB
     API --> CS[Chat Service]
     API --> ES[Embedding Service]
     
-    CS --> QS[Qdrant Searcher]
     CS --> PS[PostgreSQL Searcher]
     
     PS --> PG[(PostgreSQL)]
-    QS --> QD[(Qdrant Cloud)]
     
     ES --> PA[Pinecone API]
-    ES --> OA[OpenAI API]
     CS --> GR[Groq API]
     
     API --> PG
-    PG --> QD
 ```
 
 #### Architecture Components:
@@ -142,18 +131,17 @@ graph TB
 1. **Frontend Layer**: React-based user interface
 2. **API Layer**: FastAPI backend with REST endpoints
 3. **Service Layer**: Modular services for different functionalities
-4. **Data Layer**: Flexible database options with automatic synchronization
+4. **Data Layer**: PostgreSQL with pgvector for storage and search
 5. **External APIs**: Third-party services for embeddings and LLM processing
 
 #### Data Flow:
 
 **Adding Companies:**
 1. Company data → PostgreSQL (with embeddings)
-2. Auto-sync → Qdrant (when enabled)
 
 **Search Process:**
 1. User query → Embedding generation
-2. Vector search → Qdrant or PostgreSQL
+2. Vector search → PostgreSQL
 3. Results → LLM processing
 4. Final response → User
 
@@ -162,53 +150,31 @@ graph TB
 The system implements a sophisticated hybrid search approach combining two powerful search methodologies with flexible vector database options:
 
 1. **Vector Similarity Search (Semantic Search)**
-   - Uses either:
-     - OpenAI's text-embedding-3-small model (1536-dimensional vectors)
-     - Pinecone's multilingual-e5-large model (1024-dimensional vectors)
-   - Vector storage options:
-     - PostgreSQL with pgvector extension (integrated approach)
-     - Qdrant Cloud (specialized vector database for high performance)
+   - Uses Pinecone's multilingual-e5-large model (1024-dimensional vectors)
+   - Vector storage: PostgreSQL with pgvector extension (integrated approach)
    - Enables semantic understanding of search queries
-   - Automatic synchronization between PostgreSQL and Qdrant when using Qdrant mode
 
 2. **Full-Text Search (Keyword Search)**
    - Utilizes PostgreSQL's built-in full-text search capabilities
    - Performs exact and partial keyword matching
 
 3. **Vector Database Configuration**
-   - Configure in `services/chat.py`:
-     - `use_qdrant = True`: Uses Qdrant Cloud for vector search
-     - `use_postgres = True`: Uses PostgreSQL pgvector for vector search
-   - PostgreSQL always serves as the primary data store
-   - Qdrant acts as a specialized search index when enabled
+   - Uses PostgreSQL pgvector for vector search
 
 ### Embedding Options
 
-The system supports two embedding providers:
-
-1. **OpenAI Embeddings**
-   - Model: text-embedding-3-small
-   - Dimensions: 1536
-   - Advantages: High accuracy, well-suited for English language content
-
-2. **Pinecone Embeddings**
-   - Model: multilingual-e5-large
-   - Dimensions: 1024
-   - Advantages: Multilingual support, open-source model, cost-effective
-
-The system automatically falls back to the alternative provider if one fails, ensuring robustness.
+**Pinecone Embeddings**
+- Model: multilingual-e5-large
+- Dimensions: 1024
+- Advantages: Multilingual support, open-source model, cost-effective
 
 ### LLM Processing Options
 
 For search result processing and summarization, the system supports:
 
-1. **OpenAI GPT Models**
-   - Model: gpt-4o-2024-08-06
-   - Advantages: High accuracy, advanced reasoning capabilities
-
-2. **Groq LLaMA Models**
-   - Model: llama-3.3-70b-versatile
-   - Advantages: Fast inference, cost-effective, open-source architecture
+**Groq LLaMA Models**
+  - Model: llama-3.3-70b-versatile
+  - Advantages: Fast inference, cost-effective, open-source architecture
 
 ### Search & Ranking Process
 
@@ -313,35 +279,6 @@ This hybrid approach ensures that results are ranked considering both semantic s
 
 https://github.com/user-attachments/assets/bce8fc3b-45ef-4ae7-b94e-aad6b4dcc089
 
-## OpenShift Deployment
-
-### Deployment Steps
-
-1. **Prepare OpenShift Resources**
-   - Convert Docker Compose configuration to OpenShift compatible resources using Kompose
-   - Ensure all required images are accessible to OpenShift
-
-2. **Configure Storage**
-   - Set up persistent volumes for PostgreSQL database
-   - Set up persistent volumes for Redis cache
-   - Configure volume claims for both databases
-
-3. **Configure Environment**
-   - Create secrets for sensitive data (API keys, database credentials)
-   - Create configmaps for application configuration
-   - Set up network policies if required
-
-4. **Deploy Components**
-   - Deploy PostgreSQL database with pgvector extension
-   - Deploy Redis cache service
-   - Deploy backend FastAPI application
-   - Deploy frontend React application
-
-5. **Configure Access**
-   - Create routes for frontend and backend services
-   - Configure TLS/SSL if required
-   - Set up any required network policies
-
-Note: Ensure all components have appropriate resource limits and health checks configured.
+ 
 
 

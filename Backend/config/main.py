@@ -13,14 +13,8 @@ class Config(object):
     Base configuration class. Contains all the default configurations.
     """
 
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
     PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY")
-    
-    # Qdrant Configuration
-    QDRANT_API_KEY: str = os.getenv("QDRANT_API_KEY")
-    QDRANT_URL: str = os.getenv("QDRANT_URL", "http://localhost:6333")  
-    QDRANT_COLLECTION_NAME: str = os.getenv("QDRANT_COLLECTION_NAME", "companies")
     
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "postgres")
     DATABASE_USER: str = os.getenv("DATABASE_USER", "postgres")
