@@ -22,7 +22,7 @@ class Config(object):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "localhost")
     DATABASE_PORT: str = os.getenv("DATABASE_PORT", "5432")
     SQLALCHEMY_DATABASE_URL: str = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_URL}:{DATABASE_PORT}/{DATABASE_NAME}"
-    REDIS_HOST: str = os.getenv("REDIS_HOST", "redis")
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
 
 
