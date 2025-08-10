@@ -9,20 +9,12 @@ from groq import Groq
 from services.postgres_searcher import PostgresSearcher
 from config.main import config
 from models.company import Company
+from util.prompt import PROMPT
+from util.tool import get_all_tools
 
 logger = logging.getLogger(__name__)
 
-PROMPT = """
-You are a company search assistant.
-You provide an overview of the companies found based on the search query.
-You just tell about the companies names that are only relevant to the search query, ranks them in order of relevance to the search query.
-You must use tool `search_companies` to search for companies based on the search query.
-
-- Always output well formatted markdown text.
-- Use the `search_companies` tool to search for companies based on the search query.
-- Keep your answers concise and to the point.
-- Your answer must always show a two liner summary of all the companies found.
-"""
+ 
 
 
 class ChatService:
@@ -70,27 +62,12 @@ class ChatService:
         """
         This function is used to get the definition of the search tool.
         """
-        return {
-            "type": "function",
-            "function": {
-                "name": "search_companies",
-                "description": "This function is used to search companies based on the search_query.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "search_query": {
-                            "type": "string",
-                            "description": (
-                                "The search query to search the companies.\n"
-                                "eg: 'tech companies in San Francisco' or "
-                                "'large manufacturing companies'"
-                            ),
-                        },
-                    },
-                    "required": ["search_query"],
-                },
-            },
-        }
+        # Use centralized tool registry so future tools are auto-included
+        # while preserving current single-tool behavior for compatibility.
+        # Consumers of this method expect a single tool schema, so default to the
+        # first one for backward compatibility.
+        tools = get_all_tools()
+        return tools[0] if tools else {}
 
     def generate_response(self, user_query):
         """
@@ -106,7 +83,7 @@ class ChatService:
                 model=self.model,
                 messages=messages,
                 tool_choice="auto",
-                tools=[self.search_tool_definition()],
+                tools=get_all_tools(),
             )
             response_message = response.choices[0].message
 

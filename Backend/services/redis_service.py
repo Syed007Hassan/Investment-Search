@@ -1,3 +1,5 @@
+"""Simple Redis service wrapper for caching and key management."""
+
 from typing import Optional, Any
 import json
 from redis import Redis

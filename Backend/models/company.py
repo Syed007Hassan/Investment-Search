@@ -1,3 +1,5 @@
+"""SQLAlchemy `Company` model and related utilities for hybrid search."""
+
 from __future__ import annotations
 import datetime
 from pgvector.sqlalchemy import Vector

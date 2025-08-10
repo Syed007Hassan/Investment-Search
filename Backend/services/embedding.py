@@ -1,4 +1,5 @@
 # pylint:disable=all
+"""Embedding service using Pinecone for vector generation."""
 
 import logging
 from typing import (
