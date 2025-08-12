@@ -57,10 +57,11 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
     <div className="bg-gray-800 rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-brand">
+          <label htmlFor="company-name" className="block text-sm font-medium text-brand">
             Company Name
           </label>
           <input
+            id="company-name"
             type="text"
             name="name"
             value={formData.name}
@@ -71,10 +72,11 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-brand">
+          <label htmlFor="company-description" className="block text-sm font-medium text-brand">
             Description
           </label>
           <textarea
+            id="company-description"
             name="description"
             value={formData.description}
             onChange={handleChange}
@@ -85,8 +87,9 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-brand">Industry</label>
+          <label htmlFor="company-industry" className="block text-sm font-medium text-brand">Industry</label>
           <input
+            id="company-industry"
             type="text"
             name="industry"
             value={formData.industry}
@@ -97,8 +100,9 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-brand">Size</label>
+          <label htmlFor="company-size" className="block text-sm font-medium text-brand">Size</label>
           <input
+            id="company-size"
             type="text"
             name="size"
             value={formData.size}
@@ -109,8 +113,9 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-brand">Location</label>
+          <label htmlFor="company-location" className="block text-sm font-medium text-brand">Location</label>
           <input
+            id="company-location"
             type="text"
             name="location"
             value={formData.location}
