@@ -57,7 +57,7 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
     <div className="bg-gray-800 rounded-lg p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-green-400">
+          <label className="block text-sm font-medium text-brand">
             Company Name
           </label>
           <input
@@ -66,12 +66,12 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
             value={formData.name}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md bg-gray-700 border-green-400/20 text-green-400 shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            className="mt-1 block w-full rounded-md bg-gray-700 border-brand/20 text-brand shadow-sm focus:border-brand focus:ring focus:ring-brand focus:ring-opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-green-400">
+          <label className="block text-sm font-medium text-brand">
             Description
           </label>
           <textarea
@@ -80,50 +80,50 @@ const AddCompany: React.FC<AddCompanyProps> = ({ onSuccess }) => {
             onChange={handleChange}
             required
             rows={4}
-            className="mt-1 block w-full rounded-md bg-gray-700 border-green-400/20 text-green-400 shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            className="mt-1 block w-full rounded-md bg-gray-700 border-brand/20 text-brand shadow-sm focus:border-brand focus:ring focus:ring-brand focus:ring-opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-green-400">Industry</label>
+          <label className="block text-sm font-medium text-brand">Industry</label>
           <input
             type="text"
             name="industry"
             value={formData.industry}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md bg-gray-700 border-green-400/20 text-green-400 shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            className="mt-1 block w-full rounded-md bg-gray-700 border-brand/20 text-brand shadow-sm focus:border-brand focus:ring focus:ring-brand focus:ring-opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-green-400">Size</label>
+          <label className="block text-sm font-medium text-brand">Size</label>
           <input
             type="text"
             name="size"
             value={formData.size}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md bg-gray-700 border-green-400/20 text-green-400 shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            className="mt-1 block w-full rounded-md bg-gray-700 border-brand/20 text-brand shadow-sm focus:border-brand focus:ring focus:ring-brand focus:ring-opacity-50"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-green-400">Location</label>
+          <label className="block text-sm font-medium text-brand">Location</label>
           <input
             type="text"
             name="location"
             value={formData.location}
             onChange={handleChange}
             required
-            className="mt-1 block w-full rounded-md bg-gray-700 border-green-400/20 text-green-400 shadow-sm focus:border-green-400 focus:ring focus:ring-green-400 focus:ring-opacity-50"
+            className="mt-1 block w-full rounded-md bg-gray-700 border-brand/20 text-brand shadow-sm focus:border-brand focus:ring focus:ring-brand focus:ring-opacity-50"
           />
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full flex justify-center py-2 px-4 border border-green-400 rounded-md shadow-sm text-sm font-medium text-gray-800 bg-green-400 hover:bg-gray-800 hover:text-green-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+          className="w-full flex justify-center py-2 px-4 border border-brand rounded-md shadow-sm text-sm font-medium text-gray-800 bg-brand hover:bg-gray-800 hover:text-brand focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
         >
           {isLoading ? (
             <span className="flex items-center">

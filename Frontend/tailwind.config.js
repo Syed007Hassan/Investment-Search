@@ -17,8 +17,8 @@ module.exports = {
       },
       colors: {
         brand: {
-          DEFAULT: '#34d399',
-          dark: '#059669',
+          DEFAULT: '#a8a29e',
+          dark: '#57534e',
         },
       },
     },

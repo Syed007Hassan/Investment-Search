@@ -61,20 +61,20 @@ function App() {
         <div className="flex justify-end space-x-4 mb-8">
           <button
             onClick={() => setIsListModalOpen(true)}
-            className="px-4 py-2 bg-gray-800 text-green-400 rounded-lg shadow-lg border border-green-400 hover:bg-green-400 hover:text-gray-800 transition-all duration-300"
+            className="px-4 py-2 rounded-lg shadow-lg bg-gray-800 text-zinc-200 border border-zinc-500 hover:bg-gray-700 hover:border-zinc-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/40 transition-all duration-300"
           >
             View All Companies
           </button>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-green-400 text-gray-800 rounded-lg shadow-lg border border-green-400 hover:bg-gray-800 hover:text-green-400 transition-all duration-300"
+            className="px-4 py-2 rounded-lg shadow-lg bg-gradient-to-r from-zinc-200 to-zinc-300 text-gray-900 border border-zinc-300 hover:from-zinc-100 hover:to-zinc-200 hover:border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 transition-all duration-300"
           >
             Add Company
           </button>
         </div>
 
         <div className="flex flex-col items-center justify-center">
-          <h1 className="text-4xl font-bold text-green-400 mb-12 text-center">
+          <h1 className="text-4xl sm:text-5xl font-extrabold mb-12 text-center bg-gradient-to-r from-white via-zinc-200 to-white bg-clip-text text-transparent tracking-tight drop-shadow">
             Company Search & Ranking System
           </h1>
           <div className="w-full max-w-3xl">
@@ -103,7 +103,7 @@ function App() {
       >
         <div className="space-y-4 max-h-[60vh] overflow-y-auto">
           {companies.map((company: Company) => (
-            <div key={company.id} className="border border-green-400/20 rounded-lg p-4 hover:shadow-lg hover:shadow-green-400/10 transition-all duration-300 bg-gray-800 relative">
+            <div key={company.id} className="border border-brand/20 rounded-lg p-4 hover:shadow-lg transition-all duration-300 bg-gray-800 relative">
               <button
                 onClick={() => {
                   if (company.id) {
@@ -117,16 +117,16 @@ function App() {
               >
                 <TrashIcon className="h-5 w-5" />
               </button>
-              <h3 className="text-lg font-semibold text-green-400 pr-8">{company.name}</h3>
+              <h3 className="text-lg font-semibold text-brand pr-8">{company.name}</h3>
               <p className="text-gray-300 text-sm mt-1">{company.description}</p>
               <div className="mt-2 flex flex-wrap gap-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
                   {company.industry}
                 </span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
                   {company.size}
                 </span>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-green-400 border border-green-400/20">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
                   {company.location}
                 </span>
               </div>
