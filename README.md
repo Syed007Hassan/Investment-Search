@@ -66,7 +66,7 @@ The project includes a lightweight Haskell microservice that performs Multi‑Cr
 ### How to run (Docker Compose)
 - From the repository root (where `docker-compose.yml` lives):
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 - This starts `mcda` (Haskell), `backend` (FastAPI), `frontend` (React), `db` (PostgreSQL/pgvector) and `redis`.
 - The backend is configured with `MCDA_URL=http://mcda:8081` and will call MCDA when the frontend requests `sort_by=mcda`.
