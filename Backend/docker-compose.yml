@@ -9,7 +9,7 @@ services:
       - DATABASE_NAME=postgres
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=postgres
-      - DATABASE_URL=localhost
+      - DATABASE_URL=db
       - DATABASE_PORT=5432
       - GROQ_API_KEY=${GROQ_API_KEY}
       - PINECONE_API_KEY=${PINECONE_API_KEY}
@@ -26,8 +26,8 @@ services:
       - app-network
     command: >
       bash -c "
-        # python scripts/reset_db.py &&
-        # python scripts/load_data.py &&
+        python scripts/reset_db.py &&
+        python scripts/load_data.py &&
         uvicorn main:app --host 0.0.0.0 --port 8000 --reload
       "
 
