@@ -139,3 +139,18 @@ async def delete_company(company_id: int):
         return {"message": "Company deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/companies/{company_id}", response_class=JSONResponse)
+async def get_company(company_id: int):
+    """Get a single company by id."""
+    try:
+        with get_db_session() as session:
+            company = session.query(Company).filter(Company.id == company_id).first()
+            if not company:
+                raise HTTPException(status_code=404, detail="Company not found")
+            return company.to_dict()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

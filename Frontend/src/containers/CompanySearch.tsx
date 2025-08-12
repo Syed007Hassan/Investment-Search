@@ -7,6 +7,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
 import { Company } from '../types/company';
 import { useDebounce } from '../hooks/useDebounce';
+import { Link } from 'react-router-dom';
 
 interface SearchResponse {
   response: string;
@@ -23,6 +24,36 @@ const CompanySearch: React.FC = () => {
   const [sortBy, setSortBy] = useState<'relevance' | 'name'>('relevance');
   const debouncedQuery = useDebounce(searchQuery, 400);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  // hydrate from URL or sessionStorage on mount
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlQuery = params.get('q') || '';
+      const urlSort = (params.get('sort') as 'relevance' | 'name') || 'relevance';
+      const parseList = (key: string) => (params.get(key) ? (params.get(key) as string).split(',').filter(Boolean) : []);
+      const urlFilters = {
+        industry: parseList('industry'),
+        size: parseList('size'),
+        location: parseList('location'),
+      };
+
+      const storedRaw = sessionStorage.getItem('companySearchState');
+      const stored = storedRaw ? JSON.parse(storedRaw) as { q: string; sort: 'relevance' | 'name'; filters: { industry: string[]; size: string[]; location: string[] } } : null;
+
+      // URL takes precedence; otherwise fall back to session state
+      const effectiveQuery = urlQuery || stored?.q || '';
+      const effectiveSort = params.get('sort') ? urlSort : (stored?.sort || 'relevance');
+      const effectiveFilters = (params.get('industry') || params.get('size') || params.get('location')) ? urlFilters : (stored?.filters || { industry: [], size: [], location: [] });
+
+      setSearchQuery(effectiveQuery);
+      setSortBy(effectiveSort);
+      setFilters(effectiveFilters);
+      // If we have a query (from either source), search will trigger via debounced effect
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const handleSearch = async (q?: string) => {
     const query = (q ?? searchQuery).trim();
@@ -52,6 +83,25 @@ const CompanySearch: React.FC = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery, JSON.stringify(filters), sortBy]);
+
+  // persist state to URL and sessionStorage
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const setList = (key: string, list: string[]) => {
+      if (list.length) url.searchParams.set(key, list.join(','));
+      else url.searchParams.delete(key);
+    };
+    if (searchQuery) url.searchParams.set('q', searchQuery);
+    else url.searchParams.delete('q');
+    url.searchParams.set('sort', sortBy);
+    setList('industry', filters.industry);
+    setList('size', filters.size);
+    setList('location', filters.location);
+    window.history.replaceState(null, '', url.toString());
+
+    const payload = { q: searchQuery, sort: sortBy, filters };
+    sessionStorage.setItem('companySearchState', JSON.stringify(payload));
+  }, [searchQuery, filters, sortBy]);
 
   const filteredAndSorted = useMemo(() => {
     if (!searchResponse) return [] as Company[];
@@ -209,9 +259,10 @@ const CompanySearch: React.FC = () => {
             <h2 className="text-lg font-semibold text-brand">Recommended Companies</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredAndSorted.map((company: Company, index: number) => (
-                <div
+                <Link
+                  to={`/companies/${company.id}`}
                   key={index}
-                  className="border border-brand/20 rounded-lg p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800"
+                  className="border border-brand/20 rounded-lg p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-base font-semibold text-brand">{company.name}</h3>
@@ -228,7 +279,7 @@ const CompanySearch: React.FC = () => {
                       {company.location}
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             {filteredAndSorted.length === 0 && (

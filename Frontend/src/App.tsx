@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import CompanySearch from './containers/CompanySearch';
 import AddCompany from './containers/AddCompany';
+import CompanyDetail from './containers/CompanyDetail';
+import { Routes, Route, Link } from 'react-router-dom';
 import Modal from './components/Modal';
 import axios from 'axios';
 import { TrashIcon } from '@heroicons/react/24/outline';
@@ -78,7 +80,10 @@ function App() {
             Company Search & Ranking System
           </h1>
           <div className="w-full max-w-3xl">
-            <CompanySearch />
+            <Routes>
+              <Route path="/" element={<CompanySearch />} />
+              <Route path="/companies/:id" element={<CompanyDetail />} />
+            </Routes>
           </div>
         </div>
       </div>
