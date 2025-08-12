@@ -24,6 +24,8 @@ class Config(object):
     SQLALCHEMY_DATABASE_URL: str = f"postgresql://{DATABASE_USER}:{DATABASE_PASSWORD}@{DATABASE_URL}:{DATABASE_PORT}/{DATABASE_NAME}"
     REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
+    # Haskell MCDA ranking service base URL
+    MCDA_URL: str = os.getenv("MCDA_URL", "http://mcda:8081")
 
 
 config = Config()

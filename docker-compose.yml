@@ -17,11 +17,14 @@ services:
       - PINECONE_API_KEY=${PINECONE_API_KEY}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - MCDA_URL=http://mcda:8081
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mcda:
+        condition: service_started
     volumes:
       - ./Backend:/app
     networks:
@@ -86,6 +89,15 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+
+  mcda:
+    build:
+      context: ./HaskellMCDA
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
 
 volumes:
   postgres_data:

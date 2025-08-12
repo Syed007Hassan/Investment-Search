@@ -3,3 +3,7 @@
 .venv
 k8s
 kind-config.yaml
+node_modules
+.stack-work
+dist
+dist-newstyle

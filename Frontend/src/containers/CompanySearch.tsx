@@ -21,7 +21,7 @@ const CompanySearch: React.FC = () => {
   const [searchResponse, setSearchResponse] = useState<SearchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ industry: string[]; size: string[]; location: string[] }>({ industry: [], size: [], location: [] });
-  const [sortBy, setSortBy] = useState<'relevance' | 'name'>('relevance');
+  const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'mcda'>('relevance');
   const debouncedQuery = useDebounce(searchQuery, 400);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -30,7 +30,7 @@ const CompanySearch: React.FC = () => {
     try {
       const params = new URLSearchParams(window.location.search);
       const urlQuery = params.get('q') || '';
-      const urlSort = (params.get('sort') as 'relevance' | 'name') || 'relevance';
+      const urlSort = (params.get('sort') as 'relevance' | 'name' | 'mcda') || 'relevance';
       const parseList = (key: string) => (params.get(key) ? (params.get(key) as string).split(',').filter(Boolean) : []);
       const urlFilters = {
         industry: parseList('industry'),
@@ -39,7 +39,7 @@ const CompanySearch: React.FC = () => {
       };
 
       const storedRaw = sessionStorage.getItem('companySearchState');
-      const stored = storedRaw ? JSON.parse(storedRaw) as { q: string; sort: 'relevance' | 'name'; filters: { industry: string[]; size: string[]; location: string[] } } : null;
+      const stored = storedRaw ? JSON.parse(storedRaw) as { q: string; sort: 'relevance' | 'name' | 'mcda'; filters: { industry: string[]; size: string[]; location: string[] } } : null;
 
       // URL takes precedence; otherwise fall back to session state
       const effectiveQuery = urlQuery || stored?.q || '';
@@ -148,11 +148,12 @@ const CompanySearch: React.FC = () => {
             <select
               id="sort"
               value={sortBy}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'relevance' | 'name')}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'relevance' | 'name' | 'mcda')}
               className="rounded-md bg-gray-800 border border-brand/30 text-gray-200"
             >
               <option value="relevance">Relevance</option>
               <option value="name">Name</option>
+              <option value="mcda">MCDA</option>
             </select>
             {(filters.industry.length + filters.size.length + filters.location.length) > 0 && (
               <button onClick={clearAllFilters} className="text-sm text-brand hover:text-brand-dark">Clear all</button>

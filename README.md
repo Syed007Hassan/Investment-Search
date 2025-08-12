@@ -26,6 +26,80 @@ This hybrid approach provides more accurate and contextually relevant results co
 - **Containerization**: Docker
 - **ORM**: SQLAlchemy
 
+## Haskell MCDA Ranking Service (TOPSIS)
+
+The project includes a lightweight Haskell microservice that performs Multi‑Criteria Decision Analysis (MCDA) re‑ranking using the TOPSIS method. The backend can call this service to re‑order search results when the user selects the MCDA sort option.
+
+### What it does
+- Accepts a list of candidate companies with simple numeric features (e.g., `relevance`, `text`, `location`, `industry`) and optional weights.
+- Returns the same candidates ranked by their MCDA score, plus a short explanation.
+
+### Service location
+- Code: `HaskellMCDA/`
+- Default port: `8081`
+- Backend env var for service URL: `MCDA_URL` (default: `http://mcda:8081` in Docker)
+
+### API
+- Endpoint: `POST /rank`
+- Request (JSON):
+```json
+{
+  "candidates": [
+    { "id": 12, "features": { "relevance": 0.82, "text": 0.60, "location": 1, "industry": 1 } },
+    { "id": 7,  "features": { "relevance": 0.76, "text": 0.75, "location": 0, "industry": 1 } }
+  ],
+  "weights": { "relevance": 0.6, "text": 0.25, "location": 0.1, "industry": 0.05 },
+  "method": "topsis"
+}
+```
+- Response (JSON):
+```json
+{
+  "rankedCandidates": [
+    { "id": 12, "score": 0.83 },
+    { "id": 7,  "score": 0.78 }
+  ],
+  "explanation": "Ranked using TOPSIS with weights: relevance:0.6, text:0.25, location:0.1, industry:0.05"
+}
+```
+
+### How to run (Docker Compose)
+- From the repository root (where `docker-compose.yml` lives):
+```bash
+docker-compose up --build
+```
+- This starts `mcda` (Haskell), `backend` (FastAPI), `frontend` (React), `db` (PostgreSQL/pgvector) and `redis`.
+- The backend is configured with `MCDA_URL=http://mcda:8081` and will call MCDA when the frontend requests `sort_by=mcda`.
+
+### How to run the Haskell service locally (dev)
+Prerequisites: GHC + Cabal (install with `ghcup`), then:
+```bash
+cd HaskellMCDA
+cabal update
+cabal build
+cabal run
+```
+- The service will start on `http://localhost:8081`.
+
+### Quick test
+With the service running locally:
+```bash
+curl -s http://localhost:8081/rank \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "candidates": [
+          {"id": 1, "features": {"relevance": 0.9, "text": 0.6, "location": 1}},
+          {"id": 2, "features": {"relevance": 0.7, "text": 0.8, "location": 0}}
+        ],
+        "weights": {"relevance": 0.6, "text": 0.3, "location": 0.1},
+        "method": "topsis"
+      }'
+```
+
+### Frontend/Backend integration
+- Frontend: the search page has a “Sort” dropdown. Choose `MCDA` to request MCDA re‑ranking.
+- Backend: `POST /search-company` accepts `sort_by` and optional `weights`. When `sort_by=mcda`, it forwards candidates to the Haskell MCDA service and reorders the results. If the MCDA service is unavailable, the backend logs an error and falls back to the original order.
+
 ## Key Features
 - Hybrid search combining vector similarity and full-text search
 - Real-time company ranking based on search relevance
@@ -63,7 +137,7 @@ This hybrid approach provides more accurate and contextually relevant results co
 1. Clone the repository:
    ```bash
    git clone https://github.com/Syed007Hassan/Investment-Search.git
-   cd Backend
+   cd Investment-Search
    ```
 
 2. Build and start the containers:

@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 from pydantic import BaseModel
 import logging
+from typing import Optional, Dict, Any
 
 from services.chat import ChatService
 from models.company import Company
@@ -13,6 +14,8 @@ from services.embedding import Embedding
 from models.database import get_db_session
 from services.redis_service import RedisService
 from fastapi import HTTPException
+import httpx
+from config.main import config
 
 api_router = APIRouter()
 chat_service = ChatService()
@@ -30,6 +33,10 @@ class CompanyCreate(BaseModel):
 
 class SearchRequest(BaseModel):
     query: str
+    # Optional client-provided weights for MCDA
+    weights: Optional[Dict[str, float]] = None
+    # Optional flag to enable MCDA re-ranking
+    sort_by: Optional[str] = None  # "relevance" | "name" | "mcda"
 
 @api_router.post("/companies")
 async def add_company(company: CompanyCreate):
@@ -68,7 +75,7 @@ async def add_company(company: CompanyCreate):
 
 @api_router.post("/search-company", response_class=JSONResponse)
 async def search_company(search_request: SearchRequest):
-    cache_key = f"search_company:{search_request.query}"
+    cache_key = f"search_company:{search_request.query}:{search_request.sort_by}:{search_request.weights}"
     cached_results = await redis_service.get(cache_key)
     
     if cached_results:
@@ -81,6 +88,46 @@ async def search_company(search_request: SearchRequest):
     response, company_recommendations = chat_service.generate_response(
         search_request.query
     )
+
+    # Optional MCDA re-ranking via Haskell microservice
+    if search_request.sort_by == "mcda" and company_recommendations:
+        try:
+            # Derive simple features for MCDA
+            candidates = []
+            for company in company_recommendations:
+                # Basic binary features using query keyword presence (placeholder/simple heuristic)
+                q = search_request.query.lower()
+                text_blob = (company.description or "") + " " + (company.industry or "") + " " + (company.location or "")
+                text_blob = text_blob.lower()
+                text_match = 1.0 if any(token in text_blob for token in q.split()) else 0.0
+                # Without direct access to vector similarity score per item here, approximate with position
+                # Earlier items presumed more relevant. Convert index to decreasing score.
+                # Normalize later in service, but give a hint here.
+                candidates.append({
+                    "id": company.id,
+                    "features": {
+                        "text": float(text_match),
+                        # Placeholder relevance using order; real impl could retrieve similarity from DB
+                        "relevance": 1.0,
+                        # Simple categorical matches if user query mentions them
+                        "industry": 1.0 if company.industry and company.industry.lower() in q else 0.0,
+                        "location": 1.0 if company.location and company.location.lower() in q else 0.0,
+                    }
+                })
+
+            payload = {
+                "candidates": candidates,
+                "weights": search_request.weights or {"relevance": 0.6, "text": 0.25, "location": 0.1, "industry": 0.05},
+                "method": "topsis"
+            }
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                r = await client.post(f"{config.MCDA_URL}/rank", json=payload)
+                r.raise_for_status()
+                data = r.json()
+            order = {item["id"]: item["score"] for item in data.get("rankedCandidates", [])}
+            company_recommendations.sort(key=lambda c: order.get(c.id, 0), reverse=True)
+        except Exception as e:  # on failure, fall back silently
+            logger.error(f"MCDA ranking failed: {e}")
     
     results = {
         "response": response,
