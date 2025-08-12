@@ -14,6 +14,7 @@ class Config(object):
     """
 
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
+    SERP_API_KEY: str = os.getenv("SERP_API_KEY")
     PINECONE_API_KEY: str = os.getenv("PINECONE_API_KEY")
     
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "postgres")

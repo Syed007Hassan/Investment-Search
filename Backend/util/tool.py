@@ -29,15 +29,45 @@ def build_search_companies_tool_schema() -> Dict[str, Any]:
             },
         },
     }
+def build_web_search_companies_tool_schema() -> Dict[str, Any]:
+    """JSON schema for `web_search_companies` tool using SerpApi-backed web search.
+    Keeps signature parallel to `search_companies` for drop-in use.
+    """
+    return {
+        "type": "function",
+        "function": {
+            "name": "web_search_companies",
+            "description": (
+                "Search the web for relevant companies using a search engine (SerpApi). "
+                "Only return company-related results relevant to the user query (e.g., industry, location)."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "search_query": {
+                        "type": "string",
+                        "description": (
+                            "A concise domain-specific query to find companies (e.g., 'healthcare companies in Boston', 'AI startups in EU')."
+                        ),
+                    },
+                },
+                "required": ["search_query"],
+            },
+        },
+    }
 
 
-def get_all_tools() -> list[Dict[str, Any]]:
+
+def get_all_tools(web_search_enabled: bool = False) -> list[Dict[str, Any]]:
     """
-    Returns all available tool schemas. Extend this by appending new tool schemas
-    to the list as new capabilities are added.
+    Returns available tool schemas. If `web_search_enabled` is True, include
+    the SerpApi-backed `web_search_companies` tool first so the assistant can
+    prefer it when instructed by the prompt.
     """
-    return [
-        build_search_companies_tool_schema(),
-    ]
+    # If web search is enabled, expose ONLY the web tool to comply with policy
+    if web_search_enabled:
+        return [build_web_search_companies_tool_schema()]
+    # Otherwise, expose the DB search tool
+    return [build_search_companies_tool_schema()]
 
 
