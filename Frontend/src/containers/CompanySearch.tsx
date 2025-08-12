@@ -124,6 +124,43 @@ const CompanySearch: React.FC = () => {
 
   const clearAllFilters = () => setFilters({ industry: [], size: [], location: [] });
 
+  const copyToClipboard = async (text: string) => {
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(text);
+        toast.success('Copied to clipboard');
+        return;
+      }
+      
+      // Fallback method for older browsers or non-secure contexts
+      if (typeof document !== 'undefined' && document.execCommand) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+          toast.success('Copied to clipboard');
+          return;
+        }
+      }
+      
+      // If all methods fail, provide user feedback
+      throw new Error('Clipboard functionality not available');
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      toast.error('Failed to copy to clipboard. Please copy manually.');
+    }
+  };
+
   return (
     <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-brand/20">
       <SearchInput
@@ -232,20 +269,9 @@ const CompanySearch: React.FC = () => {
               <div className="flex gap-2 text-sm">
                 <button
                   className="text-brand hover:text-brand-dark"
-                  onClick={() => navigator.clipboard.writeText(searchResponse.response)}
+                  onClick={() => copyToClipboard(searchResponse.response)}
                 >
                   Copy
-                </button>
-                <button
-                  className="text-brand hover:text-brand-dark"
-                  onClick={() => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('q', searchQuery);
-                    window.navigator.clipboard.writeText(url.toString());
-                    toast.success('Share link copied');
-                  }}
-                >
-                  Share
                 </button>
               </div>
             </div>

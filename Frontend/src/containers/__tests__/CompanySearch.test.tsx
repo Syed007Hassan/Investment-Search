@@ -8,6 +8,21 @@ import CompanySearch from '../CompanySearch';
 jest.mock('axios');
 const mockedAxios = axios as unknown as jest.Mocked<{ post: jest.Mock }>;
 
+// Mock clipboard and document.execCommand
+const mockClipboard = {
+  writeText: jest.fn().mockResolvedValue(void 0),
+};
+
+Object.defineProperty(navigator, 'clipboard', {
+  value: mockClipboard,
+  writable: true,
+});
+
+Object.defineProperty(document, 'execCommand', {
+  value: jest.fn().mockReturnValue(true),
+  writable: true,
+});
+
 function setup() {
   return render(
     <MemoryRouter>
@@ -21,6 +36,7 @@ describe('CompanySearch', () => {
     sessionStorage.clear();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-01T12:00:00Z'));
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -73,7 +89,7 @@ describe('CompanySearch', () => {
     expect(screen.getByText(/results/)).toBeInTheDocument();
   });
 
-  it('handles manual search submit and share/copy actions', async () => {
+  it('handles manual search submit and copy actions', async () => {
     mockedAxios.post.mockResolvedValueOnce({
       data: {
         response: 'Summary 2',
@@ -97,13 +113,7 @@ describe('CompanySearch', () => {
     await act(async () => {
       await userEvent.click(screen.getByRole('button', { name: /copy/i }));
     });
-    expect(navigator.clipboard.writeText).toHaveBeenCalled();
-
-    // Share link
-    await act(async () => {
-      await userEvent.click(screen.getByRole('button', { name: /share/i }));
-    });
-    expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    expect(mockClipboard.writeText).toHaveBeenCalledWith('Summary 2');
   });
 
   it('shows error state when backend fails', async () => {
