@@ -3,7 +3,7 @@
 from __future__ import annotations
 import datetime
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Index, Column, Integer, String, DateTime, Text
+from sqlalchemy import Index, Column, Integer, String, DateTime, Text, UniqueConstraint
 from models.database import engine
 from models import Base
 
@@ -46,6 +46,11 @@ index_ada002 = Index(
     postgresql_using="hnsw", # hnsw is a hybrid search index that is faster than the default btree index
     postgresql_with={"m": 16, "ef_construction": 64},
     postgresql_ops={"embedding": "vector_l2_ops"},
+)
+
+# Prevent duplicate company entries for the same location
+__table_args__ = (
+    UniqueConstraint("name", "location", name="uq_company_name_location"),
 )
 
 Base.metadata.create_all(engine) 

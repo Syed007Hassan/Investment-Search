@@ -38,15 +38,22 @@ class ChatService:
         try:
             logger.info(f"Searching companies with query: {search_query} using PostgreSQL")
             response: list[Company] = self.searcher.search_and_embed(search_query)
-            company_recommendations.extend(response)
+            # Deduplicate by id while preserving order
+            seen_ids: set[int] = set()
+            unique_response: list[Company] = []
+            for c in response:
+                if c.id not in seen_ids:
+                    seen_ids.add(c.id)
+                    unique_response.append(c)
+            company_recommendations.extend(unique_response)
             
             if not response:
                 return "No companies found for the given search query.", []
             
             # Create response text from company content
             response_text = "\n".join([
-                company.content if company.content else company.to_str() 
-                for company in response
+                company.content if company.content else company.to_str()
+                for company in company_recommendations
             ])
             
             return (

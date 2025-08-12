@@ -42,6 +42,18 @@ class SearchRequest(BaseModel):
 async def add_company(company: CompanyCreate):
     content = f"{company.name}\n{company.description}\n{company.industry}\n{company.size}\n{company.location}"
     
+    # Guard against duplicates (same name + location)
+    try:
+        with get_db_session() as session:
+            exists = session.query(Company).filter(
+                Company.name == company.name,
+                Company.location == company.location,
+            ).first()
+            if exists:
+                return {"message": "Company already exists; skipped"}
+    except Exception as e:
+        logger.error(f"Error checking for duplicates: {e}")
+
     try:
         logger.info(f"Generating Pinecone embedding for company: {company.name}")
         embedding = embedding_util.generate_pinecone(content, 1024)
@@ -129,9 +141,17 @@ async def search_company(search_request: SearchRequest):
         except Exception as e:  # on failure, fall back silently
             logger.error(f"MCDA ranking failed: {e}")
     
+    # Deduplicate by company id while preserving order
+    seen_ids: set[int] = set()
+    unique_companies = []
+    for company in company_recommendations:
+        if company.id not in seen_ids:
+            seen_ids.add(company.id)
+            unique_companies.append(company)
+
     results = {
         "response": response,
-        "company_recommendations": [company.to_dict() for company in company_recommendations]
+        "company_recommendations": [company.to_dict() for company in unique_companies]
     }
     
     await redis_service.set(cache_key, results, 3600)
