@@ -24,6 +24,8 @@ const CompanySearch: React.FC = () => {
   const [sortBy, setSortBy] = useState<'relevance' | 'name' | 'mcda'>('relevance');
   const debouncedQuery = useDebounce(searchQuery, 400);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(false);
+  const [sortOpen, setSortOpen] = useState<boolean>(false);
 
   // hydrate from URL or sessionStorage on mount
   useEffect(() => {
@@ -65,6 +67,7 @@ const CompanySearch: React.FC = () => {
         query,
         filters,
         sort_by: sortBy,
+        web_search: useWebSearch,
       });
       setSearchResponse(response.data);
       setError(null);
@@ -78,11 +81,13 @@ const CompanySearch: React.FC = () => {
   };
 
   useEffect(() => {
+    // When web search is enabled, do not auto-fire searches to avoid excessive requests
+    if (useWebSearch) return;
     if (debouncedQuery.trim()) {
       handleSearch(debouncedQuery);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery, JSON.stringify(filters), sortBy]);
+  }, [debouncedQuery, JSON.stringify(filters), sortBy, useWebSearch]);
 
   // persist state to URL and sessionStorage
   useEffect(() => {
@@ -143,18 +148,56 @@ const CompanySearch: React.FC = () => {
               <span className="ml-2 text-gray-500">· updated {lastUpdated.toLocaleTimeString()}</span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <label htmlFor="sort" className="text-sm text-gray-300">Sort</label>
-            <select
-              id="sort"
-              value={sortBy}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'relevance' | 'name' | 'mcda')}
-              className="rounded-md bg-gray-800 border border-brand/30 text-gray-200"
-            >
-              <option value="relevance">Relevance</option>
-              <option value="name">Name</option>
-              <option value="mcda">MCDA</option>
-            </select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-300 select-none">Web search</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={useWebSearch}
+                onClick={() => setUseWebSearch((v) => !v)}
+                className={`${useWebSearch ? 'bg-brand' : 'bg-gray-700'} relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50`}
+                title="Toggle web search"
+              >
+                <span
+                  className={`${useWebSearch ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-gray-900 transition-transform`}
+                />
+              </button>
+            </div>
+            <div className="flex items-center gap-2 relative" onBlur={() => setSortOpen(false)} tabIndex={-1}>
+              <span className="text-sm text-gray-300">Sort</span>
+              <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={sortOpen}
+                onClick={() => setSortOpen(o => !o)}
+                className="h-6 w-24 rounded-full bg-gray-800 border border-brand/30 text-gray-200 text-sm flex items-center justify-center gap-1 px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                title="Change sort"
+              >
+                <span className="truncate max-w-[5.5rem]">{sortBy === 'relevance' ? 'Relevance' : sortBy === 'name' ? 'Name' : 'MCDA'}</span>
+                <span className="text-[11px]">▾</span>
+              </button>
+              {sortOpen && (
+                <ul role="listbox" className="absolute right-0 top-7 z-10 rounded-md bg-gray-800 border border-brand/30 shadow-lg text-sm text-gray-200 overflow-hidden min-w-[7rem]">
+                  {([
+                    {v: 'relevance', l: 'Relevance'},
+                    {v: 'name', l: 'Name'},
+                    {v: 'mcda', l: 'MCDA'},
+                  ] as {v: 'relevance' | 'name' | 'mcda'; l: string;}[]).map(opt => (
+                    <li
+                      key={opt.v}
+                      role="option"
+                      aria-selected={sortBy === opt.v}
+                      className={`px-3 py-1 cursor-pointer hover:bg-gray-700 ${sortBy === opt.v ? 'bg-gray-700' : ''}`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => { setSortBy(opt.v); setSortOpen(false); }}
+                    >
+                      {opt.l}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
             {(filters.industry.length + filters.size.length + filters.location.length) > 0 && (
               <button onClick={clearAllFilters} className="text-sm text-brand hover:text-brand-dark">Clear all</button>
             )}
@@ -256,37 +299,39 @@ const CompanySearch: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-brand">Recommended Companies</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredAndSorted.map((company: Company, index: number) => (
-                <Link
-                  to={`/companies/${company.id}`}
-                  key={index}
-                  className="border border-brand/20 rounded-lg p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-semibold text-brand">{company.name}</h3>
-                  </div>
-                  <p className="mt-2 text-gray-300 line-clamp-3">{company.description}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
-                      {company.industry}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
-                      {company.size}
-                    </span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
-                      {company.location}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+          {!useWebSearch && (
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-brand">Recommended Companies</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredAndSorted.map((company: Company, index: number) => (
+                  <Link
+                    to={`/companies/${company.id}`}
+                    key={index}
+                    className="border border-brand/20 rounded-lg p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-base font-semibold text-brand">{company.name}</h3>
+                    </div>
+                    <p className="mt-2 text-gray-300 line-clamp-3">{company.description}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
+                        {company.industry}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
+                        {company.size}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-700 text-brand border border-brand/20">
+                        {company.location}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+              {filteredAndSorted.length === 0 && (
+                <div className="text-center text-gray-400">No results — try clearing some filters.</div>
+              )}
             </div>
-            {filteredAndSorted.length === 0 && (
-              <div className="text-center text-gray-400">No results — try clearing some filters.</div>
-            )}
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -37,6 +37,8 @@ class SearchRequest(BaseModel):
     weights: Optional[Dict[str, float]] = None
     # Optional flag to enable MCDA re-ranking
     sort_by: Optional[str] = None  # "relevance" | "name" | "mcda"
+    # Optional: if true, enable web search tool instead of DB search
+    web_search: Optional[bool] = False
 
 @api_router.post("/companies")
 async def add_company(company: CompanyCreate):
@@ -87,10 +89,22 @@ async def add_company(company: CompanyCreate):
 
 @api_router.post("/search-company", response_class=JSONResponse)
 async def search_company(search_request: SearchRequest):
-    cache_key = f"search_company:{search_request.query}:{search_request.sort_by}:{search_request.weights}"
+    logger.info(
+        "Incoming search request: q='%s', sort_by=%s, web_search=%s",
+        search_request.query,
+        search_request.sort_by,
+        bool(search_request.web_search),
+    )
+    # Determine if web search tool will actually be enabled (requires SERP_API_KEY)
+    web_enabled = bool(search_request.web_search) and bool(config.SERP_API_KEY)
+    cache_key = (
+        f"search_company:{search_request.query}:{search_request.sort_by}:"
+        f"{search_request.weights}:tool={'web' if web_enabled else 'db'}"
+    )
     cached_results = await redis_service.get(cache_key)
     
     if cached_results:
+        logger.info("Cache hit for key=%s; skipping tool call", cache_key)
         return {
             "response": cached_results["response"],
             "company_recommendations": cached_results["company_recommendations"],
@@ -98,7 +112,8 @@ async def search_company(search_request: SearchRequest):
         }
 
     response, company_recommendations = chat_service.generate_response(
-        search_request.query
+        search_request.query,
+        web_search=web_enabled,
     )
 
     # Optional MCDA re-ranking via Haskell microservice

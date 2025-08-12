@@ -161,12 +161,13 @@ class PostgresSearcher:
 
         results = []
         with get_db_session() as db_session:
-            results = (
-                db_session.execute(
-                    sql,
-                    {"embedding": str(query_vector), "query": query_text, "k": 60},
-                )
-            ).fetchall()
+            if query_text is None:
+                params = {"embedding": str(query_vector), "k": 60}
+            elif len(query_vector) == 0:
+                params = {"query": query_text, "k": 60}
+            else:
+                params = {"embedding": str(query_vector), "query": query_text, "k": 60}
+            results = (db_session.execute(sql, params)).fetchall()
 
         # Convert results to models
         items = []
