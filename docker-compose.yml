@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: .
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -21,7 +23,7 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - .:/app
+      - ./Backend:/app
     networks:
       - app-network
     command: >
@@ -33,12 +35,12 @@ services:
 
   frontend:
     build: 
-      context: ../Frontend
+      context: ./Frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:
-      - ../Frontend:/app
+      - ./Frontend:/app
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost:8000  # Backend URL
@@ -61,8 +63,8 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     command: postgres -c 'listen_addresses=*'
     volumes:
+      - ./Backend/docker/postgres/init:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - app-network
     healthcheck:
@@ -91,4 +93,4 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge 
+    driver: bridge
