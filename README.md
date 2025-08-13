@@ -165,14 +165,9 @@ curl -s http://localhost:8081/rank \
 1. Create a `.env` file in the Backend directory with the following variables:
 
    ```bash
-   DATABASE_NAME=your_database_name
-   DATABASE_USER=your_database_user
-   DATABASE_PASSWORD=your_database_password
-   DATABASE_URL=localhost
-   DATABASE_PORT=5432
    PINECONE_API_KEY=your_pinecone_api_key
    GROQ_API_KEY=your_groq_api_key
-
+   SERP_API_KEY=your_serp_api_key
    ```
 
 ### Quick Start with Docker Compose
