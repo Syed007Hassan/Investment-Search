@@ -180,7 +180,7 @@ curl -s http://localhost:8081/rank \
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/Syed007Hassan/Investment-Search.git
+   git clone <repo_link>
    cd Investment-Search
    ```
 
