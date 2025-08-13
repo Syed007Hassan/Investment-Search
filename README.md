@@ -163,6 +163,7 @@ curl -s http://localhost:8081/rank \
 - Docker and Docker Compose
 - Pinecone API key (for embeddings)
 - Groq API key (for Groq LLM models)
+- Serp API key (web search)
 
 ### Environment Setup
 
