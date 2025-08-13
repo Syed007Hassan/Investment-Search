@@ -196,6 +196,7 @@ The application provides several options for database setup:
    ```yaml
    command: >
      bash -c "
+       python scripts/flush_redis.py &&
        python scripts/reset_db.py &&
        python scripts/load_data.py &&
        uvicorn main:app --host 0.0.0.0 --port 8000 --reload
