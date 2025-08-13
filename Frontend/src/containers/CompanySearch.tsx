@@ -212,8 +212,8 @@ const CompanySearch: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-brand/20">
-      <div className="bg-gray-900/70 border border-brand/20 rounded-xl p-4 shadow-xl">
+    <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-brand/20">
+      <div className="bg-white/70 dark:bg-gray-900/70 border border-brand/20 rounded-xl p-4 shadow-xl">
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
@@ -236,7 +236,7 @@ const CompanySearch: React.FC = () => {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <div className="inline-flex rounded-full bg-gray-800 border border-brand/30 p-1">
+            <div className="inline-flex rounded-full bg-gray-100 border border-brand/30 p-1 backdrop-blur dark:bg-gray-800/80">
               {[
                 { v: "relevance", l: "Relevance" },
                 { v: "name", l: "Name" },
@@ -247,8 +247,8 @@ const CompanySearch: React.FC = () => {
                   onClick={() => setSortBy(opt.v as any)}
                   className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                     sortBy === opt.v
-                      ? "bg-brand text-gray-900"
-                      : "text-gray-300 hover:text-white"
+                      ? "bg-brand text-white shadow"
+                      : "text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                   }`}
                 >
                   {opt.l}
@@ -256,7 +256,7 @@ const CompanySearch: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-300 select-none">
+              <span className="text-sm text-gray-700 dark:text-gray-300 select-none">
                 Web search
               </span>
               <button
@@ -266,122 +266,34 @@ const CompanySearch: React.FC = () => {
                 onClick={() => setUseWebSearch((v) => !v)}
                 className={`${
                   useWebSearch ? "bg-brand" : "bg-gray-700"
-                } relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50`}
+                } relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 shadow-inner`}
                 title="Toggle web search"
               >
                 <span
                   className={`${
                     useWebSearch ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-gray-900 transition-transform`}
+                  } inline-block h-4 w-4 transform rounded-full bg-white dark:bg-gray-900 transition-transform`}
                 />
               </button>
             </div>
           </div>
         </div>
       </div>
-      {/* Controls: result count, sort, filters */}
+      {/* Controls: filters */}
       <div className="mt-6 flex flex-col gap-4">
-        <div className="flex flex-wrap items-center gap-3 justify-between">
-          <div className="text-sm text-gray-300">
-            {isLoading
-              ? "Searching…"
-              : `${filteredAndSorted.length || 0} results`}
-            {lastUpdated && !isLoading && (
-              <span className="ml-2 text-gray-500">
-                · updated {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-300 select-none">
-                Web search
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={useWebSearch}
-                onClick={() => setUseWebSearch((v) => !v)}
-                className={`${
-                  useWebSearch ? "bg-brand" : "bg-gray-700"
-                } relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50`}
-                title="Toggle web search"
-              >
-                <span
-                  className={`${
-                    useWebSearch ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-gray-900 transition-transform`}
-                />
-              </button>
-            </div>
-            <div
-              className="flex items-center gap-2 relative"
-              onBlur={() => setSortOpen(false)}
-              tabIndex={-1}
+        {filters.industry.length +
+          filters.size.length +
+          filters.location.length >
+          0 && (
+          <div className="flex justify-end">
+            <button
+              onClick={clearAllFilters}
+              className="text-sm text-brand hover:text-brand-dark"
             >
-              <span className="text-sm text-gray-300">Sort</span>
-              <button
-                type="button"
-                aria-haspopup="listbox"
-                aria-expanded={sortOpen}
-                onClick={() => setSortOpen((o) => !o)}
-                className="h-6 w-24 rounded-full bg-gray-800 border border-brand/30 text-gray-200 text-sm flex items-center justify-center gap-1 px-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
-                title="Change sort"
-              >
-                <span className="truncate max-w-[5.5rem]">
-                  {sortBy === "relevance"
-                    ? "Relevance"
-                    : sortBy === "name"
-                    ? "Name"
-                    : "MCDA"}
-                </span>
-                <span className="text-[11px]">▾</span>
-              </button>
-              {sortOpen && (
-                <ul
-                  role="listbox"
-                  className="absolute right-0 top-7 z-10 rounded-md bg-gray-800 border border-brand/30 shadow-lg text-sm text-gray-200 overflow-hidden min-w-[7rem]"
-                >
-                  {(
-                    [
-                      { v: "relevance", l: "Relevance" },
-                      { v: "name", l: "Name" },
-                      { v: "mcda", l: "MCDA" },
-                    ] as { v: "relevance" | "name" | "mcda"; l: string }[]
-                  ).map((opt) => (
-                    <li
-                      key={opt.v}
-                      role="option"
-                      aria-selected={sortBy === opt.v}
-                      className={`px-3 py-1 cursor-pointer hover:bg-gray-700 ${
-                        sortBy === opt.v ? "bg-gray-700" : ""
-                      }`}
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        setSortBy(opt.v);
-                        setSortOpen(false);
-                      }}
-                    >
-                      {opt.l}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {filters.industry.length +
-              filters.size.length +
-              filters.location.length >
-              0 && (
-              <button
-                onClick={clearAllFilters}
-                className="text-sm text-brand hover:text-brand-dark"
-              >
-                Clear all
-              </button>
-            )}
+              Clear all
+            </button>
           </div>
-        </div>
-
+        )}
         {/* Filter chips (static examples; you can wire with dynamic facets later) */}
         <div className="flex flex-wrap gap-2">
           {["Technology", "Finance", "Healthcare"].map((v: string) => (
@@ -462,7 +374,7 @@ const CompanySearch: React.FC = () => {
       {/* Results */}
       {searchResponse && !isLoading && (
         <div className="mt-8 space-y-6">
-          <div className="border border-brand/20 rounded-xl p-5 bg-gray-900/60 shadow">
+          <div className="border border-brand/20 rounded-xl p-5 bg-gray-900/60 shadow-md">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-brand">
                 Search Summary
@@ -494,7 +406,7 @@ const CompanySearch: React.FC = () => {
               {filteredAndSorted.map((company: Company, index: number) => {
                 const isExternal = company.id < 0 && company.external_url;
                 const card = (
-                  <div className="border border-brand/20 rounded-xl p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block">
+                  <div className="border border-brand/20 rounded-xl p-4 hover:shadow-lg hover:shadow-brand/20 transition-all duration-300 bg-gray-800/90 backdrop-blur block">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-base font-semibold text-brand">
                         {company.name}
