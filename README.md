@@ -1,6 +1,6 @@
 # Company Search & Ranking System with Hybrid Search
 
-<img width="1482" height="743" alt="Screenshot 2025-08-13 at 17 10 43" src="https://github.com/user-attachments/assets/30e50eb4-13b6-4a2b-b766-60353f32e5d4" />
+<img width="2992" height="1558" alt="image" src="https://github.com/user-attachments/assets/0b13d370-286a-4737-9282-aafa63c3d2b9" />
 
 ## Overview
 
@@ -157,7 +157,6 @@ curl -s http://localhost:8081/rank \
 
 - Docker and Docker Compose
 - Pinecone API key (for embeddings)
-- Pinecone API key (for Pinecone embeddings)
 - Groq API key (for Groq LLM models)
 
 ### Environment Setup
