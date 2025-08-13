@@ -1,4 +1,5 @@
 # Company Search & Ranking System with Hybrid Search
+<img width="1493" height="734" alt="Screenshot 2025-08-13 at 16 36 38" src="https://github.com/user-attachments/assets/b2342656-5c78-4cd7-8f55-705b1cde1f5b" />
 
 ## Overview
 
@@ -442,4 +443,8 @@ This hybrid approach ensures that results are ranked considering both semantic s
 
 ### Demo
 
-REPLACE_WITH_DEMO_VIDEO_URL
+
+
+https://github.com/user-attachments/assets/745ea76e-8e3d-4782-b3a4-ae6110f6f974
+
+
