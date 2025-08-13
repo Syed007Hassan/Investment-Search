@@ -139,7 +139,7 @@ curl -s http://localhost:8081/rank \
 ### Frontend/Backend integration
 
 - Frontend: the search page has a “Sort” dropdown. Choose `MCDA` to request MCDA re‑ranking.
-- Backend: `POST /search-company` accepts `sort_by` and optional `weights`. When `sort_by=mcda`, it forwards candidates to the Haskell MCDA service and reorders the results. If the MCDA service is unavailable, the backend logs an error and falls back to the original order.
+- Backend: `POST /search-company` accepts `sort_by`. When `sort_by=mcda`, it forwards candidates to the Haskell MCDA service and reorders the results. If the MCDA service is unavailable, the backend logs an error and falls back to the original order.
 
 ## Key Features
 
