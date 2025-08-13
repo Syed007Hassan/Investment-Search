@@ -1,28 +1,32 @@
 # Company Search & Ranking System with Hybrid Search
-
-<img width="1354" alt="image" src="https://github.com/user-attachments/assets/ee369f55-6585-4888-8418-007487a48f8f">
+<img width="1493" height="734" alt="Screenshot 2025-08-13 at 16 36 38" src="https://github.com/user-attachments/assets/b2342656-5c78-4cd7-8f55-705b1cde1f5b" />
 
 ## Overview
+
 This application implements an advanced company search and ranking system using a hybrid search approach that combines vector similarity search and traditional full-text search. The system uses PostgreSQL with PgVector extension for integrated storage. This approach ensures both semantic relevance and keyword accuracy in search results, making it particularly effective for company discovery and ranking.
 
 ## Description
+
 The system leverages a sophisticated hybrid search architecture that:
+
 - Uses Pinecone embeddings to convert company descriptions into vector representations
 - Uses PostgreSQL with PgVector for vector search and storage
 - Implements PostgreSQL's full-text search capabilities for keyword matching
 - Combines both approaches with a weighted scoring system for optimal ranking
 - Utilizes Groq's LLaMA models for intelligent search result processing and summarization
 - Utilizes Redis for caching frequently accessed data to improve performance
- 
 
 This hybrid approach provides more accurate and contextually relevant results compared to traditional keyword-only search systems.
 
 ## Technologies Used
+
 - **Backend**: FastAPI
 - **Database**: PostgreSQL with pgvector extension, Redis for caching
 - **Vector Embeddings**: Pinecone Inference API
-- **LLM Processing**: Groq LLaMA models
-- **Frontend**: React
+- **LLM Processing**: Groq (tool-calling)
+- **Web Search**: SerpApi (Google search)
+- **MCDA Re‑ranking**: Haskell microservice (TOPSIS)
+- **Frontend**: React + Tailwind CSS
 - **Containerization**: Docker
 - **ORM**: SQLAlchemy
 
@@ -31,58 +35,93 @@ This hybrid approach provides more accurate and contextually relevant results co
 The project includes a lightweight Haskell microservice that performs Multi‑Criteria Decision Analysis (MCDA) re‑ranking using the TOPSIS method. The backend can call this service to re‑order search results when the user selects the MCDA sort option.
 
 ### What it does
+
 - Accepts a list of candidate companies with simple numeric features (e.g., `relevance`, `text`, `location`, `industry`) and optional weights.
 - Returns the same candidates ranked by their MCDA score, plus a short explanation.
 
 ### Service location
+
 - Code: `HaskellMCDA/`
 - Default port: `8081`
 - Backend env var for service URL: `MCDA_URL` (default: `http://mcda:8081` in Docker)
 
 ### API
+
 - Endpoint: `POST /rank`
 - Request (JSON):
+
 ```json
 {
   "candidates": [
-    { "id": 12, "features": { "relevance": 0.82, "text": 0.60, "location": 1, "industry": 1 } },
-    { "id": 7,  "features": { "relevance": 0.76, "text": 0.75, "location": 0, "industry": 1 } }
+    {
+      "id": 12,
+      "features": {
+        "relevance": 0.82,
+        "text": 0.6,
+        "location": 1,
+        "industry": 1
+      }
+    },
+    {
+      "id": 7,
+      "features": {
+        "relevance": 0.76,
+        "text": 0.75,
+        "location": 0,
+        "industry": 1
+      }
+    }
   ],
-  "weights": { "relevance": 0.6, "text": 0.25, "location": 0.1, "industry": 0.05 },
+  "weights": {
+    "relevance": 0.6,
+    "text": 0.25,
+    "location": 0.1,
+    "industry": 0.05
+  },
   "method": "topsis"
 }
 ```
+
 - Response (JSON):
+
 ```json
 {
   "rankedCandidates": [
     { "id": 12, "score": 0.83 },
-    { "id": 7,  "score": 0.78 }
+    { "id": 7, "score": 0.78 }
   ],
   "explanation": "Ranked using TOPSIS with weights: relevance:0.6, text:0.25, location:0.1, industry:0.05"
 }
 ```
 
 ### How to run (Docker Compose)
+
 - From the repository root (where `docker-compose.yml` lives):
+
 ```bash
 docker-compose up --build -d
 ```
+
 - This starts `mcda` (Haskell), `backend` (FastAPI), `frontend` (React), `db` (PostgreSQL/pgvector) and `redis`.
 - The backend is configured with `MCDA_URL=http://mcda:8081` and will call MCDA when the frontend requests `sort_by=mcda`.
 
 ### How to run the Haskell service locally (dev)
+
 Prerequisites: GHC + Cabal (install with `ghcup`), then:
+
 ```bash
 cd HaskellMCDA
 cabal update
 cabal build
 cabal run
 ```
+
 - The service will start on `http://localhost:8081`.
 
 ### Quick test
+
 With the service running locally:
+
 ```bash
 curl -s http://localhost:8081/rank \
   -H 'Content-Type: application/json' \
@@ -97,10 +136,12 @@ curl -s http://localhost:8081/rank \
 ```
 
 ### Frontend/Backend integration
+
 - Frontend: the search page has a “Sort” dropdown. Choose `MCDA` to request MCDA re‑ranking.
 - Backend: `POST /search-company` accepts `sort_by` and optional `weights`. When `sort_by=mcda`, it forwards candidates to the Haskell MCDA service and reorders the results. If the MCDA service is unavailable, the backend logs an error and falls back to the original order.
 
 ## Key Features
+
 - Hybrid search combining vector similarity and full-text search
 - Real-time company ranking based on search relevance
 - Company information management (add/search) and retrieval
@@ -112,15 +153,16 @@ curl -s http://localhost:8081/rank \
 ## Getting Started
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Pinecone API key (for embeddings)
 - Pinecone API key (for Pinecone embeddings)
 - Groq API key (for Groq LLM models)
- 
 
 ### Environment Setup
 
 1. Create a `.env` file in the Backend directory with the following variables:
+
    ```bash
    DATABASE_NAME=your_database_name
    DATABASE_USER=your_database_user
@@ -129,12 +171,13 @@ curl -s http://localhost:8081/rank \
    DATABASE_PORT=5432
    PINECONE_API_KEY=your_pinecone_api_key
    GROQ_API_KEY=your_groq_api_key
-   
+
    ```
 
 ### Quick Start with Docker Compose
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Syed007Hassan/Investment-Search.git
    cd Investment-Search
@@ -153,6 +196,7 @@ curl -s http://localhost:8081/rank \
 The application provides several options for database setup:
 
 1. **Reset Database and Load Sample Data**:
+
    ```yaml
    command: >
      bash -c "
@@ -163,6 +207,7 @@ The application provides several options for database setup:
    ```
 
 2. **Load Sample Data Only**:
+
    ```yaml
    command: >
      bash -c "
@@ -180,25 +225,36 @@ The application provides several options for database setup:
 
 ### System Architecture
 
-The system follows a microservices architecture with PostgreSQL as the vector database:
+The system follows a service‑oriented architecture. Users search via the React frontend; the FastAPI backend orchestrates tool calls (DB search or Web search) through the Chat Service and optionally re‑ranks with the Haskell MCDA service. Results are cached in Redis.
 
 ```mermaid
-graph TB
-    U[User] --> FE[React Frontend]
-    FE --> API[FastAPI Backend]
-    
-    API --> CS[Chat Service]
-    API --> ES[Embedding Service]
-    
-    CS --> PS[PostgreSQL Searcher]
-    
-    PS --> PG[(PostgreSQL)]
-    
-    ES --> PA[Pinecone API]
-    CS --> GR[Groq API]
-    
-    API --> PG
+flowchart TD
+  U[User] --> FE[React Frontend]
+  FE -->|"POST /search-company"| API[FastAPI Backend]
+  FE -->|"GET /companies"| API
+
+  API --> Chat[Chat Service]
+  API <--> RC[(Redis Cache)]
+
+  Chat -->|"web_search=true"| Serp[SerpApi]
+  Chat -->|"db search"| PGS[PostgreSQL Searcher]
+  PGS --> PG[(PostgreSQL + pgvector)]
+
+  API -->|"Add Company"| Emb[Embedding Service]
+  Emb --> Pine[Pinecone Inference]
+  Emb --> PG
+
+  API -->|"sort_by=mcda"| MCDA[Haskell MCDA - TOPSIS]
+  MCDA --> API
+
+  Serp -->|"optional name match"| PG
 ```
+
+Flow highlights:
+
+- Frontend can request database search or web search (`web_search=true`).
+- When `sort_by=mcda`, backend sends candidates and weights to the Haskell MCDA service for re‑ranking.
+- Responses (summary + ranked companies) are cached in Redis.
 
 #### Architecture Components:
 
@@ -211,9 +267,11 @@ graph TB
 #### Data Flow:
 
 **Adding Companies:**
+
 1. Company data → PostgreSQL (with embeddings)
 
 **Search Process:**
+
 1. User query → Embedding generation
 2. Vector search → PostgreSQL
 3. Results → LLM processing
@@ -224,11 +282,13 @@ graph TB
 The system implements a sophisticated hybrid search approach combining two powerful search methodologies with flexible vector database options:
 
 1. **Vector Similarity Search (Semantic Search)**
+
    - Uses Pinecone's multilingual-e5-large model (1024-dimensional vectors)
    - Vector storage: PostgreSQL with pgvector extension (integrated approach)
    - Enables semantic understanding of search queries
 
 2. **Full-Text Search (Keyword Search)**
+
    - Utilizes PostgreSQL's built-in full-text search capabilities
    - Performs exact and partial keyword matching
 
@@ -238,6 +298,7 @@ The system implements a sophisticated hybrid search approach combining two power
 ### Embedding Options
 
 **Pinecone Embeddings**
+
 - Model: multilingual-e5-large
 - Dimensions: 1024
 - Advantages: Multilingual support, open-source model, cost-effective
@@ -247,23 +308,48 @@ The system implements a sophisticated hybrid search approach combining two power
 For search result processing and summarization, the system supports:
 
 **Groq LLaMA Models**
-  - Model: llama-3.3-70b-versatile
-  - Advantages: Fast inference, cost-effective, open-source architecture
+
+- Model: llama-3.3-70b-versatile
+- Advantages: Fast inference, cost-effective, open-source architecture
+
+### Web Search + MCDA
+
+- When the frontend sets `web_search=true`, the Chat Service exposes only the web search tool to the model and queries SerpApi.
+- Web results are filtered to company‑like pages and matched against the database by name where possible.
+- The `/search-company` endpoint accepts `sort_by` and optional `weights`. If `sort_by=mcda`, candidates (DB and web‑only) are sent to the Haskell MCDA service, which returns TOPSIS scores used to order results.
+
+Request example:
+
+```json
+{
+  "query": "ai startups in boston",
+  "web_search": true,
+  "sort_by": "mcda",
+  "weights": {
+    "relevance": 0.6,
+    "text": 0.25,
+    "location": 0.1,
+    "industry": 0.05
+  }
+}
+```
 
 ### Search & Ranking Process
 
 Let's break down this hybrid search query step by step:
 
 1. **First CTE (Common Table Expression) - Vector Search:**
+
    ```sql
    WITH vector_search AS (
-       SELECT id, 
+       SELECT id,
               RANK () OVER (ORDER BY embedding <=> :embedding) AS rank
        FROM "Company"
        ORDER BY embedding <=> :embedding
        LIMIT 20
    )
    ```
+
    - Creates a temporary result set named `vector_search`
    - `embedding <=> :embedding`: Calculates cosine distance between stored embeddings and query embedding
    - `RANK() OVER`: Assigns ranks based on similarity (lower distance = better rank)
@@ -271,17 +357,19 @@ Let's break down this hybrid search query step by step:
    - Vector distance ranges from 0-2, where 0 means vectors are identical and 2 means opposite
 
 2. **Second CTE - Full-text Search:**
+
    ```sql
    fulltext_search AS (
-       SELECT id, 
-              RANK () OVER (ORDER BY ts_rank_cd(to_tsvector('english', content), query) DESC) 
-       FROM "Company", 
+       SELECT id,
+              RANK () OVER (ORDER BY ts_rank_cd(to_tsvector('english', content), query) DESC)
+       FROM "Company",
             plainto_tsquery('english', :query) query
        WHERE to_tsvector('english', content) @@ query
        ORDER BY ts_rank_cd(to_tsvector('english', content), query) DESC
        LIMIT 20
    )
    ```
+
    - Creates another temporary result set named `fulltext_search`
    - `to_tsvector('english', content)`: Converts content to searchable tokens
    - `plainto_tsquery('english', :query)`: Converts search query to search terms
@@ -311,7 +399,9 @@ Let's break down this hybrid search query step by step:
    - `LIMIT 20`: Returns top 20 combined results
 
 **Ranking Process:**
+
 1. Vector ranking:
+
    - Lower cosine distance = better rank
    - Score = 1/(60 + rank)
    - Example: Rank 1 = 1/61 ≈ 0.0164
@@ -323,6 +413,7 @@ Let's break down this hybrid search query step by step:
      - Therefore, smaller distances indicate closer semantic similarity
 
 2. Text ranking:
+
    - Higher ts_rank_cd = better rank
    - Score = 1/(60 + rank)
    - Example: Rank 2 = 1/62 ≈ 0.0161
@@ -339,6 +430,7 @@ Let's break down this hybrid search query step by step:
    - Normalization ensures fair combination despite different scoring scales
 
 ### Example
+
 Consider the following example to illustrate the ranking process:
 
 - Item A: vector_rank=1, text_rank=2
@@ -351,8 +443,8 @@ This hybrid approach ensures that results are ranked considering both semantic s
 
 ### Demo
 
-https://github.com/user-attachments/assets/bce8fc3b-45ef-4ae7-b94e-aad6b4dcc089
 
- 
+
+https://github.com/user-attachments/assets/745ea76e-8e3d-4782-b3a4-ae6110f6f974
 
 

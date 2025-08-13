@@ -124,21 +124,31 @@ async def search_company(search_request: SearchRequest):
             for company in company_recommendations:
                 # Basic binary features using query keyword presence (placeholder/simple heuristic)
                 q = search_request.query.lower()
-                text_blob = (company.description or "") + " " + (company.industry or "") + " " + (company.location or "")
-                text_blob = text_blob.lower()
+                # Support both ORM objects and plain dicts
+                if isinstance(company, dict):
+                    description = (company.get("description") or "")
+                    industry = (company.get("industry") or "")
+                    location = (company.get("location") or "")
+                    cid = company.get("id")
+                else:
+                    description = (company.description or "")
+                    industry = (company.industry or "")
+                    location = (company.location or "")
+                    cid = company.id
+                text_blob = f"{description} {industry} {location}".lower()
                 text_match = 1.0 if any(token in text_blob for token in q.split()) else 0.0
                 # Without direct access to vector similarity score per item here, approximate with position
                 # Earlier items presumed more relevant. Convert index to decreasing score.
                 # Normalize later in service, but give a hint here.
                 candidates.append({
-                    "id": company.id,
+                    "id": cid,
                     "features": {
                         "text": float(text_match),
                         # Placeholder relevance using order; real impl could retrieve similarity from DB
                         "relevance": 1.0,
                         # Simple categorical matches if user query mentions them
-                        "industry": 1.0 if company.industry and company.industry.lower() in q else 0.0,
-                        "location": 1.0 if company.location and company.location.lower() in q else 0.0,
+                        "industry": 1.0 if industry and industry.lower() in q else 0.0,
+                        "location": 1.0 if location and location.lower() in q else 0.0,
                     }
                 })
 
@@ -152,7 +162,10 @@ async def search_company(search_request: SearchRequest):
                 r.raise_for_status()
                 data = r.json()
             order = {item["id"]: item["score"] for item in data.get("rankedCandidates", [])}
-            company_recommendations.sort(key=lambda c: order.get(c.id, 0), reverse=True)
+            # Sort supporting both ORM objects and dicts
+            def get_id(c):
+                return c.get("id") if isinstance(c, dict) else c.id
+            company_recommendations.sort(key=lambda c: order.get(get_id(c), 0), reverse=True)
         except Exception as e:  # on failure, fall back silently
             logger.error(f"MCDA ranking failed: {e}")
     
@@ -160,20 +173,24 @@ async def search_company(search_request: SearchRequest):
     seen_ids: set[int] = set()
     unique_companies = []
     for company in company_recommendations:
-        if company.id not in seen_ids:
-            seen_ids.add(company.id)
+        cid = company.get("id") if isinstance(company, dict) else company.id
+        if cid not in seen_ids:
+            seen_ids.add(cid)
             unique_companies.append(company)
 
     results = {
         "response": response,
-        "company_recommendations": [company.to_dict() for company in unique_companies]
+        "company_recommendations": [
+            company if isinstance(company, dict) else company.to_dict()
+            for company in unique_companies
+        ]
     }
     
     await redis_service.set(cache_key, results, 3600)
     
     return {
         **results,
-        "source": "database"
+        "source": "web" if web_enabled else "database"
     }
 
 

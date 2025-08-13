@@ -137,7 +137,8 @@ class ChatService:
                 base = title.split("|")[0].split(" – ")[0].split(" - ")[0]
                 return base.replace("Official Site", "").replace("Homepage", "").strip()
 
-            companies: list[Company] = []
+            companies: list[dict] = []
+            next_negative_id = -1
             for item in organic:
                 title = (item.get("title") or "").strip()
                 snippet = (item.get("snippet") or item.get("about_this_result", {}).get("source", {}).get("description") or "").strip()
@@ -161,18 +162,18 @@ class ChatService:
                         matched_db_company = candidate
 
                 if matched_db_company:
-                    companies.append(matched_db_company)
+                    companies.append(matched_db_company.to_dict())
                 else:
-                    c = Company(
-                        name=name_probe[:255],
-                        description=(snippet or "Web discovered company"),
-                        industry="",
-                        size="",
-                        location="",
-                        content=f"Company: {name_probe}\nDescription: {snippet}\nWebsite: {link}",
-                        embedding=[],
-                    )
-                    companies.append(c)
+                    companies.append({
+                        "id": next_negative_id,
+                        "name": name_probe[:255],
+                        "description": (snippet or "Web discovered company"),
+                        "industry": "",
+                        "size": "",
+                        "location": "",
+                        "external_url": link,
+                    })
+                    next_negative_id -= 1
 
             # If nothing found, try a site-restricted follow-up query targeting likely company pages
             if not companies:
@@ -194,29 +195,32 @@ class ChatService:
                         if candidate:
                             matched_db_company = candidate
                     if matched_db_company:
-                        companies.append(matched_db_company)
+                        companies.append(matched_db_company.to_dict())
                     else:
-                        c = Company(
-                            name=name_probe[:255],
-                            description=(snippet or "Web discovered company"),
-                            industry="",
-                            size="",
-                            location="",
-                            content=f"Company: {name_probe}\nDescription: {snippet}\nWebsite: {link}",
-                            embedding=[],
-                        )
-                        companies.append(c)
+                        companies.append({
+                            "id": next_negative_id,
+                            "name": name_probe[:255],
+                            "description": (snippet or "Web discovered company"),
+                            "industry": "",
+                            "size": "",
+                            "location": "",
+                            "external_url": link,
+                        })
+                        next_negative_id -= 1
 
             if not companies:
                 return "No companies found on the web for the given search query.", []
 
-            response_text = "\n".join([c.content if c.content else c.to_str() for c in companies])
-            # Only return DB-resolved companies to the UI (have ids)
-            ui_companies = [c for c in companies if getattr(c, "id", None)]
+            # Build response text from names and descriptions
+            response_text = "\n".join([
+                f"Company: {c.get('name', '')}\nDescription: {c.get('description', '')}"
+                for c in companies
+            ])
+            # Return all companies (DB-resolved and web-only) for UI rendering
             return (
                 "Retrieved the following companies based on your search query (using Web Search):\n"
                 f"{response_text}"
-            ), ui_companies
+            ), companies
         except Exception as e:  # pylint: disable=broad-except
             logger.error(f"Error searching companies on the web: {e}")
             return f"Error searching companies on the web: {str(e)}", []
