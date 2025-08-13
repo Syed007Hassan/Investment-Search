@@ -141,6 +141,11 @@ curl -s http://localhost:8081/rank \
 - Frontend: the search page has a “Sort” dropdown. Choose `MCDA` to request MCDA re‑ranking.
 - Backend: `POST /search-company` accepts `sort_by`. When `sort_by=mcda`, it forwards candidates to the Haskell MCDA service and reorders the results. If the MCDA service is unavailable, the backend logs an error and falls back to the original order.
 
+## Tests
+
+- Backend (FastAPI): basic pytest unit tests live in `Backend/tests/`. Run: `cd Backend && python -m pytest -q`.
+- Frontend (React): Jest + React Testing Library tests live in `Frontend/src/__tests__/` and component folders. Run: `cd Frontend && npm test -- --watchAll=false` (or `npm run test:coverage`).
+
 ## Key Features
 
 - Hybrid search combining vector similarity and full-text search
