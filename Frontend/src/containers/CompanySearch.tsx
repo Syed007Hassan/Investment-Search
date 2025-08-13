@@ -213,14 +213,72 @@ const CompanySearch: React.FC = () => {
 
   return (
     <div className="bg-gray-900/80 backdrop-blur-sm rounded-xl shadow-xl p-6 border border-brand/20">
-      <SearchInput
-        value={searchQuery}
-        onChange={setSearchQuery}
-        onSearch={() => handleSearch()}
-        isLoading={isLoading}
-        placeholder="Search for companies..."
-        onClear={() => setSearchQuery("")}
-      />
+      <div className="bg-gray-900/70 border border-brand/20 rounded-xl p-4 shadow-xl">
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          onSearch={() => handleSearch()}
+          isLoading={isLoading}
+          placeholder="Search companies, industries, or locations"
+          onClear={() => setSearchQuery("")}
+        />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-sm text-gray-300">
+            <span>
+              {isLoading
+                ? "Searching…"
+                : `${filteredAndSorted.length || 0} results`}
+            </span>
+            {lastUpdated && !isLoading && (
+              <span className="text-gray-500">
+                · updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="inline-flex rounded-full bg-gray-800 border border-brand/30 p-1">
+              {[
+                { v: "relevance", l: "Relevance" },
+                { v: "name", l: "Name" },
+                { v: "mcda", l: "MCDA" },
+              ].map((opt) => (
+                <button
+                  key={opt.v}
+                  onClick={() => setSortBy(opt.v as any)}
+                  className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                    sortBy === opt.v
+                      ? "bg-brand text-gray-900"
+                      : "text-gray-300 hover:text-white"
+                  }`}
+                >
+                  {opt.l}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-300 select-none">
+                Web search
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={useWebSearch}
+                onClick={() => setUseWebSearch((v) => !v)}
+                className={`${
+                  useWebSearch ? "bg-brand" : "bg-gray-700"
+                } relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/50`}
+                title="Toggle web search"
+              >
+                <span
+                  className={`${
+                    useWebSearch ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform rounded-full bg-gray-900 transition-transform`}
+                />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Controls: result count, sort, filters */}
       <div className="mt-6 flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3 justify-between">
@@ -404,7 +462,7 @@ const CompanySearch: React.FC = () => {
       {/* Results */}
       {searchResponse && !isLoading && (
         <div className="mt-8 space-y-6">
-          <div className="border border-brand/20 rounded-lg p-4 bg-gray-800/50">
+          <div className="border border-brand/20 rounded-xl p-5 bg-gray-900/60 shadow">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-brand">
                 Search Summary
@@ -432,11 +490,11 @@ const CompanySearch: React.FC = () => {
             <h2 className="text-lg font-semibold text-brand">
               Recommended Companies
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredAndSorted.map((company: Company, index: number) => {
                 const isExternal = company.id < 0 && company.external_url;
                 const card = (
-                  <div className="border border-brand/20 rounded-lg p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block">
+                  <div className="border border-brand/20 rounded-xl p-4 hover:shadow-lg hover:shadow-brand/10 transition-all duration-300 bg-gray-800 block">
                     <div className="flex items-start justify-between gap-2">
                       <h3 className="text-base font-semibold text-brand">
                         {company.name}
