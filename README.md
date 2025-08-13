@@ -278,24 +278,6 @@ Flow highlights:
 3. Results → LLM processing
 4. Final response → User
 
-### Hybrid Search Architecture
-
-The system implements a sophisticated hybrid search approach combining two powerful search methodologies with flexible vector database options:
-
-1. **Vector Similarity Search (Semantic Search)**
-
-   - Uses Pinecone's multilingual-e5-large model (1024-dimensional vectors)
-   - Vector storage: PostgreSQL with pgvector extension (integrated approach)
-   - Enables semantic understanding of search queries
-
-2. **Full-Text Search (Keyword Search)**
-
-   - Utilizes PostgreSQL's built-in full-text search capabilities
-   - Performs exact and partial keyword matching
-
-3. **Vector Database Configuration**
-   - Uses PostgreSQL pgvector for vector search
-
 
 ### Demo Video
 
